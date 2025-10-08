@@ -19,7 +19,7 @@ app.post('/chat', async (req, res) => {
         if (!stockSymbol) {
             return res.json({ response: "Please enter a stock symbol (e.g., AAPL for Apple)." });
         }
-        
+
         const apiKey = process.env.FMP_API_KEY;
         // THIS IS THE CORRECTED, MODERN API URL
         const apiUrl = `https://financialmodelingprep.com/api/v3/quote/${stockSymbol}?apikey=${apiKey}`;
@@ -27,6 +27,7 @@ app.post('/chat', async (req, res) => {
         const apiResponse = await fetch(apiUrl);
         const data = await apiResponse.json();
 
+        // Check if the API returned valid data
         if (data && data.length > 0) {
             const stockData = data[0];
             const botResponse = `The current price for ${stockData.symbol} (${stockData.name}) is $${stockData.price}.`;
