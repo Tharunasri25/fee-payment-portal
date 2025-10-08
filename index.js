@@ -1,11 +1,20 @@
 const express = require('express');
+const path = require('path');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-    res.send('Final test at 12:28 AM. If you see this, the new code is running.');
-});
+// Middleware to handle JSON requests
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+// Serve static files (HTML, CSS, JS)
+app.use(express.static('public'));
+
+// --- Our API endpoints will go here ---
+
+
+// --- Server listening ---
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
