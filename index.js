@@ -1,13 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Initialize Gemini with the key from Render's environment
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Initialize OpenAI with the key from Render's environment
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
 
 // Middleware
 app.use(express.json());
@@ -19,16 +21,19 @@ app.post('/chat', async (req, res) => {
     try {
         const userMessage = req.body.message;
 
-        // For text-only input, use the gemini-pro model
-        const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
-        const result = await model.generateContent(userMessage);
-        const response = await result.response;
-        const botResponse = response.text();
-        
+        const completion = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [
+                { role: "system", content: "You are a helpful assistant for a college fee payment portal. Keep your answers brief." },
+                { role: "user", content: userMessage }
+            ],
+        });
+
+        const botResponse = completion.choices[0].message.content;
         res.json({ response: botResponse });
 
     } catch (error) {
-        console.error("Error with Gemini AI:", error);
+        console.error("Error with OpenAI:", error);
         res.status(500).json({ error: "Sorry, I'm having trouble connecting to the AI." });
     }
 });
