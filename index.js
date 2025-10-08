@@ -14,7 +14,6 @@ app.use(express.static('public'));
 // --- API Endpoints ---
 app.post('/chat', async (req, res) => {
     try {
-        // Assume the user's message is a stock symbol (e.g., "AAPL")
         const stockSymbol = req.body.message.trim().toUpperCase();
 
         if (!stockSymbol) {
@@ -22,18 +21,18 @@ app.post('/chat', async (req, res) => {
         }
         
         const apiKey = process.env.FMP_API_KEY;
-        const apiUrl = `https://financialmodelingprep.com/api/v3/quote-short/${stockSymbol}?apikey=${apiKey}`;
+        // THIS IS THE CORRECTED, MODERN API URL
+        const apiUrl = `https://financialmodelingprep.com/api/v3/quote/${stockSymbol}?apikey=${apiKey}`;
 
         const apiResponse = await fetch(apiUrl);
         const data = await apiResponse.json();
-        console.log('Response from FMP API:', data);
-        // Check if the API returned valid data
+
         if (data && data.length > 0) {
             const stockData = data[0];
-            const botResponse = `The current price for ${stockSymbol} is $${stockData.price}.`;
+            const botResponse = `The current price for ${stockData.symbol} (${stockData.name}) is $${stockData.price}.`;
             res.json({ response: botResponse });
         } else {
-            res.json({ response: `Sorry, I couldn't find a price for '${stockSymbol}'. Please try another symbol.` });
+            res.json({ response: `Sorry, I couldn't find a price for '${stockSymbol}'. Please check the symbol.` });
         }
 
     } catch (error) {
