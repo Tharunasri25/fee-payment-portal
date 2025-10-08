@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Fee Payment</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <div class="payment-container">
+            <h1>Fee Payment Portal</h1>
+            <form id="payment-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Fee Amount (INR)</label>
+                    <input type="number" id="amount" placeholder="Enter amount" required>
+                </div>
+                <button type="submit" id="pay-btn">Pay Now</button>
+            </form>
+        </div>
+
+        <div class="chat-container">
+            <h2>Support Chatbot</h2>
+            <div id="chat-box">
+                <div class="bot-message">Hello! How can I help you with your fee payment today?</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="user-input" placeholder="Ask a question...">
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
