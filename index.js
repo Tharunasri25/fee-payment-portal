@@ -3,8 +3,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-    // A new, unique message for testing
-    res.send('This is the FINAL test message. If you see this, the new code is running.');
+    res.send('Final test at 12:28 AM. If you see this, the new code is running.');
 });
 
 app.listen(port, () => {
