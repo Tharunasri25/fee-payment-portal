@@ -26,7 +26,7 @@ app.post('/chat', async (req, res) => {
 
         const apiResponse = await fetch(apiUrl);
         const data = await apiResponse.json();
-
+        console.log('Response from FMP API:', data);
         // Check if the API returned valid data
         if (data && data.length > 0) {
             const stockData = data[0];
