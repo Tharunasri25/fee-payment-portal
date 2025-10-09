@@ -4,10 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const userFields = document.getElementById('user-login-fields');
   const adminFields = document.getElementById('admin-login-fields');
   const loginForm = document.getElementById('login-form');
-  const sendCodeBtn = document.getElementById('send-code-btn');
-  const userCode = document.getElementById('user-code');
   const loginError = document.getElementById('login-error');
   const themeToggle = document.getElementById('theme-toggle');
+  const forgotBtn = document.getElementById('forgot-btn');
 
   let loginMode = 'user';
 
@@ -30,19 +29,17 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.classList.toggle('dark');
   };
 
-  sendCodeBtn.onclick = async () => {
+  forgotBtn.onclick = async () => {
     const email = document.getElementById('user-email').value;
     if (!email) {
-      loginError.textContent = "Enter your email to get code!";
+      loginError.textContent = "Please enter your email to reset password.";
       return;
     }
-    loginError.textContent = "Sending code...";
-    // Simulate: POST /login/user/request-code (implement backend)
-    // await fetch('/login/user/request-code', {method:'POST',body:JSON.stringify({email}),headers:{'Content-Type': 'application/json'}})
+    loginError.textContent = "Sending reset instructions...";
+    // Simulate: POST to /forgot-password (backend to implement)
     setTimeout(() => {
-      userCode.style.display = '';
-      loginError.textContent = "Code sent! Check your email.";
-    }, 1400);
+      loginError.textContent = "Password reset instructions sent to your email (demo simulated).";
+    }, 1200);
   };
 
   loginForm.onsubmit = async (e) => {
@@ -51,21 +48,38 @@ document.addEventListener('DOMContentLoaded', function() {
     if (loginMode === 'admin') {
       const username = document.getElementById('admin-user').value;
       const password = document.getElementById('admin-pass').value;
-      // Simulate: POST /login/admin (implement backend)
-      if (username === "admin" && password === "letmein123") {
-        window.location.href = '/admin.html';
-      } else {
-        loginError.textContent = "Invalid admin credentials.";
+      try {
+        const res = await fetch('/login/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = '/admin.html';
+        } else {
+          loginError.textContent = data.message || 'Invalid admin credentials.';
+        }
+      } catch (err) {
+        loginError.textContent = 'Error contacting server.';
       }
     } else {
-      // User login - check code via backend
       const email = document.getElementById('user-email').value;
-      const code = userCode.value;
-      // Simulate: POST /login/user/verify-code (implement backend)
-      if (email && code === "123456") {
-        window.location.href = '/dashboard.html';
-      } else {
-        loginError.textContent = "Incorrect code.";
+      const password = document.getElementById('user-password').value;
+      try {
+        const res = await fetch('/login/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = '/dashboard.html';
+        } else {
+          loginError.textContent = data.message || 'Invalid user credentials.';
+        }
+      } catch (err) {
+        loginError.textContent = 'Error contacting server.';
       }
     }
   };
