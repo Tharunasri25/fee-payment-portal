@@ -23,14 +23,15 @@ app.post('/chat', async (req, res) => {
             return res.json({ response: "Please enter a question about fee payments or general assistance." });
         }
 
-        // Call Hugging Face conversational model
-        const response = await hf.conversational({
-            model: "facebook/blenderbot-400M-distill",
-            inputs: {
-                past_user_inputs: [],
-                generated_responses: [],
-                text: userMessage,
-            },
+        // Use textGeneration instead of conversational
+        const response = await hf.textGeneration({
+            model: "microsoft/DialoGPT-medium",
+            inputs: userMessage,
+            parameters: {
+                max_new_tokens: 100,
+                temperature: 0.7,
+                return_full_text: false
+            }
         });
 
         res.json({ response: response.generated_text });
