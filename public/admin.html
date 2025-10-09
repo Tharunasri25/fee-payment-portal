@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Fee Payment Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h2>Admin Dashboard</h2>
+    <button id="logout-btn">Logout</button>
+    <button id="theme-toggle">Toggle Dark/Light</button>
+  </header>
+  <main>
+    <section class="create-payment-section">
+      <h3>Create Payment Request</h3>
+      <form id="create-payment-form">
+        <input type="email" id="student-email" placeholder="Student Email" required />
+        <input type="text" id="fee-desc" placeholder="Fee Description" required />
+        <input type="number" id="fee-amount" placeholder="Amount (INR)" required />
+        <button type="submit">Create Payment</button>
+      </form>
+    </section>
+    <section class="dashboard-analytics">
+      <h3>Payments Overview</h3>
+      <div id="admin-payments-list"></div>
+      <!-- Future: Add chart.js summaries or color badges here -->
+    </section>
+    <section class="chatbot-section">
+      <h3>Admin Chatbot</h3>
+      <div id="chat-window-admin"></div>
+      <input type="text" id="chat-input-admin" placeholder="Ask something..." />
+      <button id="chat-send-admin">Send</button>
+    </section>
+  </main>
+  <script src="admin.js"></script>
+</body>
+</html>
