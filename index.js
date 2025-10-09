@@ -11,39 +11,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 app.post('/chat', async (req, res) => {
-  try {
-    const userMessage = req.body.message?.trim();
-    if (!userMessage) {
-      return res.json({ response: "Please enter a question." });
-    }
-
-    const apiResponse = await fetch(
-      "https://api-inference.huggingface.co/models/distilgpt2",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${HF_TOKEN}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ inputs: userMessage })
-      }
-    );
-
-    if (!apiResponse.ok) {
-      throw new Error(`Hugging Face inference error ${apiResponse.status}`);
-    }
-
-    const [generation] = await apiResponse.json();
-    const reply = generation.generated_text || "Sorry, I didn’t get that.";
-
-    res.json({ response: reply });
-
-  } catch (err) {
-    console.error("Error with Hugging Face REST API:", err);
-    res.status(500).json({ response: "Sorry, I'm having trouble connecting to the AI service right now." });
+  const word = req.body.message?.trim().toLowerCase();
+  if (!word) {
+    return res.json({ response: "Please enter a word to define." });
   }
-});
-
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  try {
+    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+    const data = await r.json();
+    if (r.ok && data[0]?.meanings?.[0]?.definitions?.[0]?.definition) {
+      res.json({
+        response: `Definition of '${word}': ${data[0].meanings[0].definitions[0].definition}`
+      });
+    } else {
+      res.json({ response: `Sorry, no definition found for '${word}'.` });
+    }
+  } catch (e) {
+    console.error("Dictionary API error:", e);
+    res.status(500).json({ response: "Error fetching definition." });
+  }
 });
