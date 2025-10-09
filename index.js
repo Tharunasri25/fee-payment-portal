@@ -19,7 +19,7 @@ app.post('/chat', async (req, res) => {
     }
 
     const apiResponse = await fetch(
-      "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill",
+      "https://api-inference.huggingface.co/models/gpt2",
       {
         method: "POST",
         headers: {
