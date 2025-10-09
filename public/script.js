@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const loginError = document.getElementById('login-error');
   const themeToggle = document.getElementById('theme-toggle');
   const forgotBtn = document.getElementById('forgot-btn');
-
   let loginMode = 'user';
 
   userBtn.onclick = () => {
@@ -16,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     adminBtn.classList.remove('active');
     userFields.style.display = '';
     adminFields.style.display = 'none';
+    loginError.textContent = "";
   };
   adminBtn.onclick = () => {
     loginMode = 'admin';
@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     adminBtn.classList.add('active');
     userFields.style.display = 'none';
     adminFields.style.display = '';
+    loginError.textContent = "";
   };
 
   themeToggle.onclick = () => {
@@ -36,10 +37,10 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     loginError.textContent = "Sending reset instructions...";
-    // Simulate: POST to /forgot-password (backend to implement)
+    // Simulated: implement full backend later
     setTimeout(() => {
-      loginError.textContent = "Password reset instructions sent to your email (demo simulated).";
-    }, 1200);
+      loginError.textContent = "Password reset instructions sent to your email (simulated)";
+    }, 1300);
   };
 
   loginForm.onsubmit = async (e) => {
