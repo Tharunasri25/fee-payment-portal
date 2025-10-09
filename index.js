@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const path = require('path');
 const fetch = require('node-fetch');
 
 const app = express();
@@ -19,7 +18,7 @@ app.post('/chat', async (req, res) => {
     }
 
     const apiResponse = await fetch(
-      "https://api-inference.huggingface.co/models/gpt2",
+      "https://api-inference.huggingface.co/models/distilgpt2",
       {
         method: "POST",
         headers: {
