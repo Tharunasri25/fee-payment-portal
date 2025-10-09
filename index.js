@@ -9,6 +9,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+// Admin login route (hardcoded admin credentials)
+app.post('/login/admin', (req, res) => {
+  const { username, password } = req.body;
+  if (username === 'admin' && password === 'letmein123') {
+    res.json({ success: true, message: 'Admin login successful' });
+  } else {
+    res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+  }
+});
+
 // Chat endpoint using the free Dictionary API
 app.post('/chat', async (req, res) => {
   const word = req.body.message?.trim().toLowerCase();

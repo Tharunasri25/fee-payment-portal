@@ -1,111 +1,62 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f7f6;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f7fa;
+  color: #222;
+  transition: background 0.2s;
 }
-
-.container {
-    display: flex;
-    gap: 40px;
-    background: white;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+body.dark {
+  background: #24243c;
+  color: #eee;
 }
-
-.payment-container, .chat-container {
-    width: 350px;
-    display: flex;
-    flex-direction: column;
+.login-container {
+  width: 350px;
+  margin: 2em auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px #aaa;
+  padding: 2em;
 }
-
-h1, h2 {
-    text-align: center;
-    color: #333;
-    margin-top: 0;
+.login-toggle {
+  text-align: center;
+  margin-bottom: 1em;
 }
-
-.form-group {
-    margin-bottom: 15px;
+.login-toggle button {
+  padding: 0.5em 1em;
+  margin: 0 0.5em;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  background: #e0e0e0;
 }
-
-label {
-    display: block;
-    margin-bottom: 5px;
-    color: #555;
-    font-weight: bold;
+.login-toggle .active {
+  background: #48aaff;
+  color: #fff;
 }
-
-input[type="text"], input[type="email"], input[type="number"] {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
+#login-form input, #login-form button {
+  display: block;
+  width: 98%;
+  margin: 0.5em 0;
+  padding: 0.75em;
+  border-radius: 4px;
+  border: 1px solid #ccc;
 }
-
-button {
-    width: 100%;
-    padding: 12px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
+#login-btn, #send-code-btn, #theme-toggle {
+  background: #48aaff;
+  color: #fff;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
 }
-
-button:hover {
-    background-color: #0056b3;
+#login-btn:hover, #send-code-btn:hover, #theme-toggle:hover {
+  background: #006bb3;
 }
-
-#chat-box {
-    flex-grow: 1;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-    overflow-y: auto;
-    margin-bottom: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+#login-error {
+  color: #b30000;
+  margin: 1em 0;
+  font-weight: bold;
 }
-
-.bot-message, .user-message {
-    padding: 8px 12px;
-    border-radius: 15px;
-    max-width: 80%;
-}
-
-.bot-message {
-    background-color: #e9ecef;
-    align-self: flex-start;
-}
-
-.user-message {
-    background-color: #007bff;
-    color: white;
-    align-self: flex-end;
-}
-
-.chat-input {
-    display: flex;
-}
-
-#user-input {
-    flex-grow: 1;
-    border-right: none;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
-
-#send-btn {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    width: auto;
+footer {
+  text-align: center;
+  margin-top: 1em;
 }
