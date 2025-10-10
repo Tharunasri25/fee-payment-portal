@@ -10,6 +10,49 @@ document.addEventListener('DOMContentLoaded', function() {
     window.location.href = '/';
   };
 
+  const paymentsList = document.getElementById('payments-list');
+  const loggedInUserEmail = localStorage.getItem('userEmail'); // Get user email from login
+
+  // Function to fetch payments for the specific user
+  async function fetchUserPayments() {
+    if (!loggedInUserEmail) {
+        paymentsList.innerHTML = "<p>Could not identify user. Please log in again.</p>";
+        return;
+    }
+    try {
+        // Call the backend endpoint to get payments for this user
+        const response = await fetch(`/payments/user?email=${loggedInUserEmail}`);
+        const data = await response.json();
+        if (data.success) {
+            renderUserPayments(data.payments);
+        } else {
+            paymentsList.innerHTML = `<p>Could not load your payments.</p>`;
+        }
+    } catch (error) {
+        console.error('Error fetching user payments:', error);
+        paymentsList.innerHTML = `<p>Error loading your payments.</p>`;
+    }
+  }
+
+  // Function to display the payments on the page
+  function renderUserPayments(payments) {
+    paymentsList.innerHTML = "";
+    if (payments.length === 0) {
+        paymentsList.innerHTML = "<p>The admin has not assigned any payments to you yet.</p>";
+        return;
+    }
+    payments.forEach(p => {
+        const row = document.createElement('div');
+        row.className = p.status === 'paid' ? 'payment-row status-paid' : 'payment-row status-due';
+        row.innerHTML = `
+            <span><b>${p.desc}</b> — ₹${p.amount}</span>
+            <span class="badge">${p.status.toUpperCase()}</span>
+        `;
+        paymentsList.appendChild(row);
+    });
+  }
+
+
   // --- CHATBOT LOGIC ---
   const chatWindow = document.getElementById('chat-window');
   const chatInput = document.getElementById('chat-input');
@@ -47,4 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
   chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleSendMessage();
   });
+  
+  // Initial load of data for the page
+  fetchUserPayments();
 });
