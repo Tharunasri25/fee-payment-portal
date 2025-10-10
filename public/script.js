@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loginMode = 'user';
     userBtn.classList.add('active');
     adminBtn.classList.remove('active');
-    userFields.style.display = '';
+    userFields.style.display = 'block';
     adminFields.style.display = 'none';
     loginError.textContent = "";
   };
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     userBtn.classList.remove('active');
     adminBtn.classList.add('active');
     userFields.style.display = 'none';
-    adminFields.style.display = '';
+    adminFields.style.display = 'block';
     loginError.textContent = "";
   };
 
@@ -67,20 +67,14 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       const email = document.getElementById('user-email').value;
       const password = document.getElementById('user-password').value;
-      try {
-        const res = await fetch('/login/user', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (data.success) {
+      // This is a placeholder for user login
+      // We will build the real user login in a later step
+      if (email && password) {
+          // Temporarily save user email to be used in the dashboard
+          localStorage.setItem('userEmail', email);
           window.location.href = '/dashboard.html';
-        } else {
-          loginError.textContent = data.message || 'Invalid user credentials.';
-        }
-      } catch (err) {
-        loginError.textContent = 'Error contacting server.';
+      } else {
+          loginError.textContent = 'Please enter email and password.';
       }
     }
   };

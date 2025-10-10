@@ -12,12 +12,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const paymentsList = document.getElementById('admin-payments-list');
   const createPaymentForm = document.getElementById('create-payment-form');
 
-  // Function to fetch and display all payments for the admin
   async function fetchAdminPayments() {
     try {
       const response = await fetch('/payments');
       const data = await response.json();
-
       if (data.success) {
         renderAdminPayments(data.payments);
       } else {
@@ -30,32 +28,27 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function renderAdminPayments(payments) {
-    paymentsList.innerHTML = ""; // Clear the list
+    paymentsList.innerHTML = "";
     if (payments.length === 0) {
         paymentsList.innerHTML = "<p>No payments have been created yet.</p>";
         return;
     }
     payments.forEach(p => {
-      const color = p.status === "paid" ? "#d4edda" : "#f8d7da"; // Light green for paid, light red for due
-      const statusColor = p.status === "paid" ? "#155724" : "#721c24"; // Darker text color for status
-      
-      paymentsList.innerHTML += `
-        <div class="admin-row" style="background:${color}; color:${statusColor}; margin:1em 0; padding:1em; border-radius:8px;">
-          <b>${p.email}</b>: ${p.desc} — ₹${p.amount}
-          <span class="badge" style="float: right; font-weight: bold;">${p.status.toUpperCase()}</span>
-        </div>
+      const row = document.createElement('div');
+      row.className = p.status === 'paid' ? 'payment-row status-paid' : 'payment-row status-due';
+      row.innerHTML = `
+        <span><b>${p.email}</b>: ${p.desc} — ₹${p.amount}</span>
+        <span class="badge">${p.status.toUpperCase()}</span>
       `;
+      paymentsList.appendChild(row);
     });
   }
 
-  // Handle the form submission to create a new payment
   createPaymentForm.onsubmit = async (e) => {
     e.preventDefault();
-    
     const email = document.getElementById('student-email').value;
     const desc = document.getElementById('fee-desc').value;
     const amount = document.getElementById('fee-amount').value;
-
     try {
         const response = await fetch('/payments', {
             method: 'POST',
@@ -63,20 +56,57 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({ email, desc, amount })
         });
         const data = await response.json();
-
         if (data.success) {
             alert('Payment created successfully!');
-            createPaymentForm.reset(); // Clear the form fields
-            fetchAdminPayments(); // Refresh the list of payments
+            createPaymentForm.reset();
+            fetchAdminPayments();
         } else {
             alert(`Error: ${data.message}`);
         }
     } catch (error) {
         console.error('Error creating payment:', error);
-        alert('A network error occurred. Please try again.');
+        alert('A network error occurred.');
+    }
+  };
+  
+  // --- CHATBOT LOGIC ---
+  const chatWindow = document.getElementById('chat-window-admin');
+  const chatInput = document.getElementById('chat-input-admin');
+  const chatSendBtn = document.getElementById('chat-send-admin');
+
+  const handleSendMessage = async () => {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    displayMessage(message, 'user-message');
+    chatInput.value = '';
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+      });
+      const data = await res.json();
+      displayMessage(data.response, 'bot-message');
+    } catch (error) {
+      displayMessage('Sorry, there was an error connecting to the bot.', 'bot-message');
     }
   };
 
-  // Initial load of payments when the page loads
+  function displayMessage(message, className) {
+    const div = document.createElement('div');
+    div.className = className;
+    div.textContent = message;
+    chatWindow.appendChild(div);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  chatSendBtn.addEventListener('click', handleSendMessage);
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleSendMessage();
+  });
+
+  // Initial load
   fetchAdminPayments();
 });

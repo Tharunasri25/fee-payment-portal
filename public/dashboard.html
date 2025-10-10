@@ -8,19 +8,24 @@
 <body>
   <header>
     <h2>Welcome, User!</h2>
-    <button id="logout-btn">Logout</button>
-    <button id="theme-toggle">Toggle Dark/Light</button>
+    <div>
+        <button id="theme-toggle">Toggle Dark/Light</button>
+        <button id="logout-btn">Logout</button>
+    </div>
   </header>
   <main>
     <section class="payments-section">
-      <h3>Payments To Do</h3>
+      <h3>Your Payments</h3>
       <div id="payments-list"></div>
     </section>
     <section class="chatbot-section">
-      <h3>Support Chatbot</h3>
+      <h3>Dictionary Bot</h3>
+      <p>A fun way for students to learn new words</p>
       <div id="chat-window"></div>
-      <input type="text" id="chat-input" placeholder="Ask something..." />
-      <button id="chat-send">Send</button>
+      <div class="chat-input-container">
+        <input type="text" id="chat-input" placeholder="Enter a word..." />
+        <button id="chat-send">Send</button>
+      </div>
     </section>
   </main>
   <script src="dashboard.js"></script>

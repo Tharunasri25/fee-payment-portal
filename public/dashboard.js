@@ -6,41 +6,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Logout
   document.getElementById('logout-btn').onclick = () => {
-    // Invalidate session eventually
+    localStorage.removeItem('userEmail'); // Clear the stored email on logout
     window.location.href = '/';
   };
 
-  // Payment list mock (replace with fetch; backend in next steps)
-  const mockPayments = [
-    { id: 1, desc: "Semester 1 Tuition Fee", amount: 50000, status: "due" },
-    { id: 2, desc: "Hostel Fee", amount: 20000, status: "paid" }
-  ];
-
-  function renderPayments() {
-    const paymentsList = document.getElementById('payments-list');
-    paymentsList.innerHTML = "";
-    mockPayments.forEach(p => {
-      const div = document.createElement('div');
-      div.className = `payment-row ${p.status}`;
-      div.innerHTML = `
-        <span><b>${p.desc}</b> - ₹${p.amount}</span>
-        <span class="badge ${p.status}">${p.status.toUpperCase()}</span>
-        ${p.status === "due" ? `<button onclick="alert('Payment flow soon')">Pay</button>` : ""}
-      `;
-      paymentsList.appendChild(div);
-    });
-  }
-  renderPayments();
-
-  // Chatbot (simple echo/placeholder)
+  // --- CHATBOT LOGIC ---
   const chatWindow = document.getElementById('chat-window');
-  document.getElementById('chat-send').onclick = () => {
-    const userMsg = document.getElementById('chat-input').value;
-    if (userMsg) {
-      chatWindow.innerHTML += `<div class="chat-bubble user">You: ${userMsg}</div>`;
-      chatWindow.innerHTML += `<div class="chat-bubble bot">Support: (bot) You said "${userMsg}"</div>`;
-      document.getElementById('chat-input').value = "";
-      chatWindow.scrollTop = chatWindow.scrollHeight;
+  const chatInput = document.getElementById('chat-input');
+  const chatSendBtn = document.getElementById('chat-send');
+
+  const handleSendMessage = async () => {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    displayMessage(message, 'user-message');
+    chatInput.value = '';
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+      });
+      const data = await res.json();
+      displayMessage(data.response, 'bot-message');
+    } catch (error) {
+      displayMessage('Sorry, there was an error connecting to the bot.', 'bot-message');
     }
   };
+
+  function displayMessage(message, className) {
+    const div = document.createElement('div');
+    div.className = className;
+    div.textContent = message;
+    chatWindow.appendChild(div);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  chatSendBtn.addEventListener('click', handleSendMessage);
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleSendMessage();
+  });
 });
