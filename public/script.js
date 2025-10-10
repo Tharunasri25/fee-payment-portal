@@ -7,6 +7,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const loginError = document.getElementById('login-error');
   const themeToggle = document.getElementById('theme-toggle');
   const forgotBtn = document.getElementById('forgot-btn');
+
+  // Get references to the input fields
+  const userEmailInput = document.getElementById('user-email');
+  const userPasswordInput = document.getElementById('user-password');
+
   let loginMode = 'user';
 
   userBtn.onclick = () => {
@@ -16,7 +21,12 @@ document.addEventListener('DOMContentLoaded', function() {
     userFields.style.display = 'block';
     adminFields.style.display = 'none';
     loginError.textContent = "";
+
+    // Make user fields required
+    userEmailInput.required = true;
+    userPasswordInput.required = true;
   };
+
   adminBtn.onclick = () => {
     loginMode = 'admin';
     userBtn.classList.remove('active');
@@ -24,6 +34,10 @@ document.addEventListener('DOMContentLoaded', function() {
     userFields.style.display = 'none';
     adminFields.style.display = 'block';
     loginError.textContent = "";
+
+    // Make user fields NOT required
+    userEmailInput.required = false;
+    userPasswordInput.required = false;
   };
 
   themeToggle.onclick = () => {
@@ -31,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   forgotBtn.onclick = async () => {
-    const email = document.getElementById('user-email').value;
+    const email = userEmailInput.value;
     if (!email) {
       loginError.textContent = "Please enter your email to reset password.";
       return;
@@ -65,12 +79,9 @@ document.addEventListener('DOMContentLoaded', function() {
         loginError.textContent = 'Error contacting server.';
       }
     } else {
-      const email = document.getElementById('user-email').value;
-      const password = document.getElementById('user-password').value;
-      // This is a placeholder for user login
-      // We will build the real user login in a later step
+      const email = userEmailInput.value;
+      const password = userPasswordInput.value;
       if (email && password) {
-          // Temporarily save user email to be used in the dashboard
           localStorage.setItem('userEmail', email);
           window.location.href = '/dashboard.html';
       } else {
