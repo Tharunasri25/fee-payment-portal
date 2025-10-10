@@ -16,7 +16,7 @@ let paymentIdCounter = 1;
 // Admin login route (hardcoded admin credentials)
 app.post('/login/admin', (req, res) => {
   const { username, password } = req.body;
-  if (username === 'admin' && password === 'letmein123') {
+  if (username === 'admin' && password === 'admin') {
     res.json({ success: true, message: 'Admin login successful' });
   } else {
     res.status(401).json({ success: false, message: 'Invalid admin credentials' });
