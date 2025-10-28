@@ -16,14 +16,14 @@ let paymentIdCounter = 1;
 // Admin login route (hardcoded admin credentials)
 app.post('/login/admin', (req, res) => {
   const { username, password } = req.body;
-  if (username === 'admin' && password === 'admin') {
+  if (username === 'admin' && password === 'admin') { // Assuming you kept the simplified password
     res.json({ success: true, message: 'Admin login successful' });
   } else {
     res.status(401).json({ success: false, message: 'Invalid admin credentials' });
   }
 });
 
-// Payment Endpoints
+// --- Payment Endpoints ---
 
 // Admin: Create payment
 app.post('/payments', (req, res) => {
@@ -55,7 +55,7 @@ app.get('/payments/user', (req, res) => {
   res.json({ success: true, payments: userPayments });
 });
 
-// User: Mark payment as 'paid'
+// User: Mark payment as 'paid' (future feature)
 app.post('/payments/pay', (req, res) => {
   const { id, email } = req.body;
   const payment = payments.find(p => p.id === parseInt(id) && p.email === email);
@@ -64,21 +64,36 @@ app.post('/payments/pay', (req, res) => {
   res.json({ success: true, payment });
 });
 
-// Chat endpoint using the free Dictionary API
+// --- Chat endpoint using the free Dictionary API (with SSRF fix) ---
 app.post('/chat', async (req, res) => {
   const word = req.body.message?.trim().toLowerCase();
+
+  // **SSRF FIX: VALIDATE INPUT HERE**
+  // Check if word exists and only contains letters, hyphens, or apostrophes
+  if (!word || !/^[a-z'-]+$/i.test(word)) {
+    // Reject invalid input that could be malicious
+    return res.json({ response: "Please enter a valid word to define." });
+  }
+  // **END SSRF FIX**
+
+  // The original check for empty word is still useful
   if (!word) {
     return res.json({ response: "Please enter a word to define." });
   }
+
   try {
+    // Only proceed if the word passed validation
     const apiRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
     const data = await apiRes.json();
+
     if (apiRes.ok && data[0]?.meanings?.[0]?.definitions?.[0]?.definition) {
       return res.json({
         response: `Definition of '${word}': ${data[0].meanings[0].definitions[0].definition}`
       });
     }
+    // Handle cases where the API returns a valid response but no definition
     return res.json({ response: `Sorry, no definition found for '${word}'.` });
+
   } catch (e) {
     console.error("Dictionary API error:", e);
     return res.status(500).json({ response: "Error fetching definition." });
