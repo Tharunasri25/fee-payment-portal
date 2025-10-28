@@ -1,3 +1,26 @@
+
+// --- Application Insights Setup ---
+const appInsights = require('applicationinsights');
+appInsights.setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING)
+    .setAutoDependencyCorrelation(true)
+    .setAutoCollectRequests(true)
+    .setAutoCollectPerformance(true, true)
+    .setAutoCollectExceptions(true)
+    .setAutoCollectDependencies(true)
+    .setAutoCollectConsole(true, true) // Log console.log messages
+    .setUseDiskRetryCaching(true)
+    .setSendLiveMetrics(false) // Keep false for free tier
+    .setDistributedTracingMode(appInsights.DistributedTracingModes.AI_AND_W3C);
+appInsights.defaultClient.config.samplingPercentage = 100; // Send all telemetry data
+appInsights.start();
+// --- End Application Insights Setup ---
+
+// Your existing require statements go below this block
+const express = require('express');
+const fetch = require('node-fetch');
+// ... rest of your file ...
+
+
 const express = require('express');
 const fetch = require('node-fetch');
 
