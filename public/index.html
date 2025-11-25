@@ -1,35 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fee Payment Portal Login</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Fee Payment</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
-  <div class="login-container">
-    <h1>Fee Payment Portal</h1>
-    <div class="login-toggle">
-      <button id="user-btn" class="active">User</button>
-      <button id="admin-btn">Admin</button>
+
+    <div class="container">
+        <div class="payment-container">
+            <h1>Fee Payment Portal</h1>
+            <form id="payment-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Fee Amount (INR)</label>
+                    <input type="number" id="amount" placeholder="Enter amount" required>
+                </div>
+                <button type="submit" id="pay-btn">Pay Now</button>
+            </form>
+        </div>
+
+        <div class="chat-container">
+            <h2>Support Chatbot</h2>
+            <div id="chat-box">
+                <div class="bot-message">Hello! Type a stock symbol (like AAPL or GOOGL) to check the price.</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="user-input" placeholder="Ask a question...">
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
     </div>
-    <form id="login-form">
-      <div id="user-login-fields">
-        <input type="email" placeholder="Your Email" id="user-email" required />
-        <input type="password" placeholder="Your Password" id="user-password" required />
-        <button type="button" id="forgot-btn">Forgot Password?</button>
-      </div>
-      <div id="admin-login-fields" style="display:none;">
-        <input type="text" placeholder="Admin Username" id="admin-user" />
-        <input type="password" placeholder="Password" id="admin-pass" />
-      </div>
-      <button type="submit" id="login-btn">Login</button>
-    </form>
-    <div id="login-error"></div>
-    <footer>
-      <button id="theme-toggle">Toggle Dark/Light</button>
-    </footer>
-  </div>
-  <script src="script.js"></script>
+
+    <script src="script.js"></script>
 </body>
 </html>

@@ -1,79 +1,64 @@
-// --- Application Insights Setup ---
-const appInsights = require('applicationinsights');
-appInsights.setup(process.env.APPLICATIONINSIGHTS_CONNECTION_STRING)
-    .setAutoDependencyCorrelation(true)
-    .setAutoCollectRequests(true)
-    .setAutoCollectPerformance(true, true)
-    .setAutoCollectExceptions(true)
-    .setAutoCollectDependencies(true)
-    .setAutoCollectConsole(true, true) // Log console.log messages
-    .setUseDiskRetryCaching(true)
-    .setSendLiveMetrics(false) // Keep false for free tier
-    .setDistributedTracingMode(appInsights.DistributedTracingModes.AI_AND_W3C);
-appInsights.defaultClient.config.samplingPercentage = 100; // Send all telemetry data
-appInsights.start();
-// --- End Application Insights Setup ---
-
-// --- Original require statements (express is only required ONCE here) ---
+require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const fetch = require('node-fetch');
-// --- End Original require statements ---
+const Razorpay = require('razorpay');
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Initialize Razorpay with keys from Render environment variables
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// In-memory payments (replace with DB later)
-let payments = [];
-let paymentIdCounter = 1;
+// --- API Endpoints ---
 
-// Admin login route (hardcoded credentials with whitespace trimming)
-app.post('/login/admin', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ success: false, message: 'Username and password are required.' });
-  }
-  if (username.trim() === 'admin' && password.trim() === 'admin') { // Assuming simplified password 'admin'
-    res.json({ success: true, message: 'Admin login successful' });
-  } else {
-    res.status(401).json({ success: false, message: 'Invalid admin credentials' });
-  }
-});
-
-// --- Payment Endpoints ---
-app.post('/payments', (req, res) => { /* ... (rest of your payment code) ... */ });
-app.get('/payments', (req, res) => { /* ... (rest of your payment code) ... */ });
-app.get('/payments/user', (req, res) => { /* ... (rest of your payment code) ... */ });
-app.post('/payments/pay', (req, res) => { /* ... (rest of your payment code) ... */ });
-
-// --- Chatbot Endpoint (Dictionary API with SSRF fix) ---
+// 1. Chatbot Endpoint (Finance Bot)
 app.post('/chat', async (req, res) => {
-  const word = req.body.message?.trim().toLowerCase();
-  if (!word || !/^[a-z'-]+$/i.test(word)) {
-    return res.json({ response: "Please enter a valid word to define." });
-  }
-  try {
-    const apiRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-    const data = await apiRes.json();
-    if (apiRes.ok && data[0]?.meanings?.[0]?.definitions?.[0]?.definition) {
-      return res.json({
-        response: `Definition of '${word}': ${data[0].meanings[0].definitions[0].definition}`
-      });
+    try {
+        const stockSymbol = req.body.message.trim().toUpperCase();
+        if (!stockSymbol) return res.json({ response: "Please enter a stock symbol (e.g., AAPL)." });
+        
+        const apiKey = process.env.FMP_API_KEY;
+        const apiUrl = `https://financialmodelingprep.com/api/v3/quote-short/${stockSymbol}?apikey=${apiKey}`;
+        const apiResponse = await fetch(apiUrl);
+        const data = await apiResponse.json();
+
+        if (data && data.length > 0) {
+            res.json({ response: `The current price for ${stockSymbol} is $${data[0].price}.` });
+        } else {
+            res.json({ response: `Sorry, I couldn't find a price for '${stockSymbol}'.` });
+        }
+    } catch (error) {
+        console.error("Error with Finance API:", error);
+        res.status(500).json({ error: "Sorry, the finance service is temporarily unavailable." });
     }
-    return res.json({ response: `Sorry, no definition found for '${word}'.` });
-  } catch (e) {
-    console.error("Dictionary API error:", e);
-    // Track exception with App Insights
-    if (appInsights.defaultClient) { appInsights.defaultClient.trackException({ exception: e }); }
-    return res.status(500).json({ response: "Error fetching definition." });
-  }
 });
 
-// Start server
+// 2. Payment Endpoint (Create Order)
+app.post('/create-order', async (req, res) => {
+    try {
+        const options = {
+            amount: req.body.amount * 100, // Razorpay works in paise (100 paise = 1 INR)
+            currency: "INR",
+            receipt: "receipt_" + Math.random().toString(36).substring(7),
+        };
+        const order = await razorpay.orders.create(options);
+        res.json(order);
+    } catch (error) {
+        console.error("Razorpay Error:", error);
+        res.status(500).send("Error creating order");
+    }
+});
+
+// --- Server listening ---
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+    console.log(`Server is running on port ${port}`);
 });

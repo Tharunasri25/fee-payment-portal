@@ -1,92 +1,76 @@
-document.addEventListener('DOMContentLoaded', function() {
-  const userBtn = document.getElementById('user-btn');
-  const adminBtn = document.getElementById('admin-btn');
-  const userFields = document.getElementById('user-login-fields');
-  const adminFields = document.getElementById('admin-login-fields');
-  const loginForm = document.getElementById('login-form');
-  const loginError = document.getElementById('login-error');
-  const themeToggle = document.getElementById('theme-toggle');
-  const forgotBtn = document.getElementById('forgot-btn');
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- Chatbot Logic ---
+    const sendBtn = document.getElementById('send-btn');
+    const userInput = document.getElementById('user-input');
+    const chatBox = document.getElementById('chat-box');
 
-  // Get references to the input fields
-  const userEmailInput = document.getElementById('user-email');
-  const userPasswordInput = document.getElementById('user-password');
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', (e) => e.key === 'Enter' && sendMessage());
 
-  let loginMode = 'user';
-
-  userBtn.onclick = () => {
-    loginMode = 'user';
-    userBtn.classList.add('active');
-    adminBtn.classList.remove('active');
-    userFields.style.display = 'block';
-    adminFields.style.display = 'none';
-    loginError.textContent = "";
-
-    // Make user fields required
-    userEmailInput.required = true;
-    userPasswordInput.required = true;
-  };
-
-  adminBtn.onclick = () => {
-    loginMode = 'admin';
-    userBtn.classList.remove('active');
-    adminBtn.classList.add('active');
-    userFields.style.display = 'none';
-    adminFields.style.display = 'block';
-    loginError.textContent = "";
-
-    // Make user fields NOT required
-    userEmailInput.required = false;
-    userPasswordInput.required = false;
-  };
-
-  themeToggle.onclick = () => {
-    document.body.classList.toggle('dark');
-  };
-
-  forgotBtn.onclick = async () => {
-    const email = userEmailInput.value;
-    if (!email) {
-      loginError.textContent = "Please enter your email to reset password.";
-      return;
-    }
-    loginError.textContent = "Sending reset instructions...";
-    // Simulated: implement full backend later
-    setTimeout(() => {
-      loginError.textContent = "Password reset instructions sent to your email (simulated)";
-    }, 1300);
-  };
-
-  loginForm.onsubmit = async (e) => {
-    e.preventDefault();
-    loginError.textContent = "";
-    if (loginMode === 'admin') {
-      const username = document.getElementById('admin-user').value;
-      const password = document.getElementById('admin-pass').value;
-      try {
-        const res = await fetch('/login/admin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (data.success) {
-          window.location.href = '/admin.html';
-        } else {
-          loginError.textContent = data.message || 'Invalid admin credentials.';
+    async function sendMessage() {
+        const messageText = userInput.value.trim();
+        if (messageText === '') return;
+        displayMessage(messageText, 'user-message');
+        userInput.value = '';
+        try {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: messageText })
+            });
+            const data = await response.json();
+            displayMessage(data.response, 'bot-message');
+        } catch (error) {
+            displayMessage('Sorry, I am having trouble connecting.', 'bot-message');
         }
-      } catch (err) {
-        loginError.textContent = 'Error contacting server.';
-      }
-    } else {
-      const email = userEmailInput.value;
-      const password = userPasswordInput.value;
-      if (email && password) {
-          localStorage.setItem('userEmail', email);
-          window.location.href = '/dashboard.html';
-      } else {
-          loginError.textContent = 'Please enter email and password.';
-      }
     }
-  };
+
+    function displayMessage(text, className) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = className;
+        messageDiv.textContent = text;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // --- Payment Logic ---
+    const paymentForm = document.getElementById('payment-form');
+    
+    paymentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const amount = document.getElementById('amount').value;
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+
+        // 1. Create Order on Backend
+        const orderResponse = await fetch('/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: amount })
+        });
+        const order = await orderResponse.json();
+
+        // 2. Open Razorpay Checkout
+        const options = {
+            "key": "rzp_test_RjtOijK4mcGPH5", // <--- PASTE YOUR KEY ID HERE
+            "amount": order.amount,
+            "currency": order.currency,
+            "name": "College Fee Payment",
+            "description": "Test Transaction",
+            "order_id": order.id,
+            "handler": function (response){
+                alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
+            },
+            "prefill": {
+                "name": name,
+                "email": email,
+            },
+            "theme": {
+                "color": "#3399cc"
+            }
+        };
+        const rzp1 = new Razorpay(options);
+        rzp1.open();
+    });
 });
