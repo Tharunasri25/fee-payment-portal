@@ -1,76 +1,88 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // --- Chatbot Logic ---
-    const sendBtn = document.getElementById('send-btn');
-    const userInput = document.getElementById('user-input');
-    const chatBox = document.getElementById('chat-box');
+    // --- Login Logic ---
+    const loginSection = document.getElementById('login-section');
+    const dashboardSection = document.getElementById('dashboard-section');
 
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', (e) => e.key === 'Enter' && sendMessage());
+    document.getElementById('login-btn').addEventListener('click', async () => {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
 
-    async function sendMessage() {
-        const messageText = userInput.value.trim();
-        if (messageText === '') return;
-        displayMessage(messageText, 'user-message');
-        userInput.value = '';
-        try {
-            const response = await fetch('/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: messageText })
-            });
-            const data = await response.json();
-            displayMessage(data.response, 'bot-message');
-        } catch (error) {
-            displayMessage('Sorry, I am having trouble connecting.', 'bot-message');
-        }
-    }
-
-    function displayMessage(text, className) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = className;
-        messageDiv.textContent = text;
-        chatBox.appendChild(messageDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    // --- Payment Logic ---
-    const paymentForm = document.getElementById('payment-form');
-    
-    paymentForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const amount = document.getElementById('amount').value;
-        const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
-
-        // 1. Create Order on Backend
-        const orderResponse = await fetch('/create-order', {
+        const res = await fetch('/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: amount })
+            body: JSON.stringify({ email, password })
         });
-        const order = await orderResponse.json();
+        const data = await res.json();
+        
+        if (data.success) {
+            loginSection.style.display = 'none';
+            dashboardSection.style.display = 'block';
+            document.getElementById('welcome-msg').innerText = `Welcome, ${data.user.FullName}`;
+        } else {
+            alert(data.message);
+        }
+    });
 
-        // 2. Open Razorpay Checkout
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        location.reload();
+    });
+
+    // --- Payment Logic ---
+    document.getElementById('pay-btn').addEventListener('click', async () => {
+        const amount = document.getElementById('amount').value;
+        if (!amount) return alert("Enter amount");
+
+        const res = await fetch('/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount })
+        });
+        const order = await res.json();
+
         const options = {
-            "key": "rzp_test_RjtOijK4mcGPH5", // <--- PASTE YOUR KEY ID HERE
+            "key": "rzp_test_RjtOijK4mcGPH5", // <--- PASTE YOUR RAZORPAY KEY ID HERE
             "amount": order.amount,
-            "currency": order.currency,
-            "name": "College Fee Payment",
-            "description": "Test Transaction",
+            "currency": "INR",
             "order_id": order.id,
             "handler": function (response){
-                alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
-            },
-            "prefill": {
-                "name": name,
-                "email": email,
-            },
-            "theme": {
-                "color": "#3399cc"
+                alert("Payment Successful! ID: " + response.razorpay_payment_id);
             }
         };
-        const rzp1 = new Razorpay(options);
-        rzp1.open();
+        new Razorpay(options).open();
+    });
+
+    // --- Upload Logic (Azure Blob) ---
+    document.getElementById('upload-btn').addEventListener('click', async () => {
+        const fileInput = document.getElementById('receipt-file');
+        if (fileInput.files.length === 0) return alert("Select a file");
+
+        const formData = new FormData();
+        formData.append('receipt', fileInput.files[0]);
+
+        document.getElementById('upload-status').innerText = "Uploading...";
+        
+        const res = await fetch('/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('upload-status').innerHTML = `Success! <a href="${data.url}" target="_blank">View Receipt</a>`;
+        } else {
+            document.getElementById('upload-status').innerText = "Upload Failed";
+        }
+    });
+
+    // --- Chat Logic ---
+    const chatBox = document.getElementById('chat-box');
+    document.getElementById('send-btn').addEventListener('click', async () => {
+        const text = document.getElementById('user-input').value;
+        chatBox.innerHTML += `<div>User: ${text}</div>`;
+        
+        const res = await fetch('/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+        chatBox.innerHTML += `<div>Bot: ${data.response}</div>`;
     });
 });

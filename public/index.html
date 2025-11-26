@@ -3,41 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>College Fee Payment</title>
+    <title>College Fee Portal</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
 
-    <div class="container">
+    <div id="login-section" class="container">
+        <h1>Student Login</h1>
+        <div class="form-group">
+            <input type="email" id="login-email" placeholder="Email (student@example.com)">
+            <input type="password" id="login-password" placeholder="Password (student123)">
+            <button id="login-btn">Login</button>
+        </div>
+    </div>
+
+    <div id="dashboard-section" class="container" style="display:none;">
+        <div class="header">
+            <h2 id="welcome-msg">Welcome</h2>
+            <button id="logout-btn" style="background:red;">Logout</button>
+        </div>
+
         <div class="payment-container">
-            <h1>Fee Payment Portal</h1>
-            <form id="payment-form">
-                <div class="form-group">
-                    <label for="name">Full Name</label>
-                    <input type="text" id="name" placeholder="Enter your name" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" placeholder="Enter your email" required>
-                </div>
-                <div class="form-group">
-                    <label for="amount">Fee Amount (INR)</label>
-                    <input type="number" id="amount" placeholder="Enter amount" required>
-                </div>
-                <button type="submit" id="pay-btn">Pay Now</button>
-            </form>
+            <h3>Pay Fees</h3>
+            <input type="number" id="amount" placeholder="Amount (INR)">
+            <button id="pay-btn">Pay Now via Razorpay</button>
+            
+            <h3>Upload Receipt</h3>
+            <input type="file" id="receipt-file">
+            <button id="upload-btn">Upload to Azure Blob</button>
+            <p id="upload-status"></p>
         </div>
 
         <div class="chat-container">
-            <h2>Support Chatbot</h2>
-            <div id="chat-box">
-                <div class="bot-message">Hello! Type a stock symbol (like AAPL or GOOGL) to check the price.</div>
-            </div>
-            <div class="chat-input">
-                <input type="text" id="user-input" placeholder="Ask a question...">
-                <button id="send-btn">Send</button>
-            </div>
+            <h3>Support Bot</h3>
+            <div id="chat-box" style="height:150px; overflow-y:scroll; border:1px solid #ccc; padding:10px;"></div>
+            <input type="text" id="user-input" placeholder="Type a word...">
+            <button id="send-btn">Send</button>
         </div>
     </div>
 
