@@ -5,6 +5,7 @@ const Razorpay = require('razorpay');
 const sql = require('mssql');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const multer = require('multer');
+const path = require('path'); // <--- This is CRITICAL for the new page
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -23,14 +24,20 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.use(express.static('public')); // Serves files like portal.html, styles.css
 
 // --- Helper ---
 async function getDb() {
     return await sql.connect(dbConfig);
 }
 
-// --- 1. AUTHENTICATION (Hardcoded as requested) ---
+// --- 1. ROOT ROUTE (The New Home Page) ---
+app.get('/', (req, res) => {
+    // This sends your new portal.html file when someone visits the site
+    res.sendFile(path.join(__dirname, 'public', 'portal.html'));
+});
+
+// --- 2. AUTHENTICATION ---
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
@@ -39,7 +46,7 @@ app.post('/login', (req, res) => {
         return res.json({ success: true, role: 'admin', name: 'Principal Admin' });
     }
     
-    // Hardcoded Student (For Demo)
+    // Hardcoded Student
     if (email === 'student@example.com' && password === 'student123') {
         return res.json({ success: true, role: 'student', name: 'Rahul Sharma' });
     }
@@ -47,9 +54,7 @@ app.post('/login', (req, res) => {
     res.status(401).json({ success: false, message: 'Invalid Credentials' });
 });
 
-// --- 2. ADMIN FEATURES ---
-
-// Get All Payments (For Admin Dashboard)
+// --- 3. ADMIN FEATURES ---
 app.get('/api/admin/payments', async (req, res) => {
     try {
         const pool = await getDb();
@@ -61,7 +66,6 @@ app.get('/api/admin/payments', async (req, res) => {
     }
 });
 
-// Add New Fee Type (For Admin)
 app.post('/api/admin/add-fee', async (req, res) => {
     try {
         const { feeName, amount } = req.body;
@@ -76,9 +80,7 @@ app.post('/api/admin/add-fee', async (req, res) => {
     }
 });
 
-// --- 3. STUDENT FEATURES ---
-
-// Get Available Fees (For Student to pay)
+// --- 4. STUDENT FEATURES ---
 app.get('/api/fees', async (req, res) => {
     try {
         const pool = await getDb();
@@ -89,7 +91,6 @@ app.get('/api/fees', async (req, res) => {
     }
 });
 
-// Record a Successful Payment (Save to DB)
 app.post('/api/record-payment', async (req, res) => {
     try {
         const { feeName, amount, receiptUrl } = req.body;
@@ -106,7 +107,6 @@ app.post('/api/record-payment', async (req, res) => {
     }
 });
 
-// Razorpay Order
 app.post('/create-order', async (req, res) => {
     try {
         const options = {
@@ -121,12 +121,11 @@ app.post('/create-order', async (req, res) => {
     }
 });
 
-// Azure Blob Upload
 app.post('/upload', upload.single('receipt'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).send("No file");
         const containerClient = blobServiceClient.getContainerClient(containerName);
-        const blobName = "rec-" + Date.now() + ".jpg"; // Simple name
+        const blobName = "rec-" + Date.now() + ".jpg"; 
         const blockBlobClient = containerClient.getBlockBlobClient(blobName);
         await blockBlobClient.uploadData(req.file.buffer);
         res.json({ success: true, url: blockBlobClient.url });
@@ -135,7 +134,6 @@ app.post('/upload', upload.single('receipt'), async (req, res) => {
     }
 });
 
-// Dictionary Bot
 app.post('/chat', async (req, res) => {
     try {
         const word = req.body.message.trim();
@@ -149,13 +147,6 @@ app.post('/chat', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: "Bot unavailable" });
     }
-});
-
-// ... (rest of your code) ...
-
-// FORCE ROOT URL TO SERVE PORTAL.HTML
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'portal.html'));
 });
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
