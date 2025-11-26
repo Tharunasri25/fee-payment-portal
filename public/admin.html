@@ -7,36 +7,43 @@
 <body>
     <div class="dashboard">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h1>Admin Dashboard</h1>
-            <button onclick="logout()" style="background:red;">Logout</button>
+            <h2>🛡️ Admin Dashboard</h2>
+            <button onclick="logout()">Logout</button>
         </div>
 
-        <div class="payment-container" style="text-align:left;">
-            <h3>➕ Add New Fee Type</h3>
-            <input type="text" id="new-fee-name" placeholder="Fee Name (e.g., Breakage Fee)">
-            <input type="number" id="new-fee-amount" placeholder="Amount">
+        <div class="card">
+            <h3>➕ Add New Fee</h3>
+            <input type="text" id="new-fee-name" placeholder="Fee Name (e.g., Lab Fee)">
+            <input type="number" id="new-fee-amount" placeholder="Amount (INR)">
             <button onclick="addFee()">Add Fee</button>
         </div>
 
-        <div class="payment-container" style="text-align:left; margin-top: 20px;">
+        <div class="card">
             <h3>📜 Transaction History</h3>
-            <table border="1" width="100%" style="border-collapse: collapse;">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Fee Type</th>
-                        <th>Amount</th>
-                        <th>Receipt</th>
-                    </tr>
-                </thead>
-                <tbody id="tx-table">
-                    </tbody>
-            </table>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Fee Type</th>
+                            <th>Amount</th>
+                            <th>Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tx-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <h3>🤖 Admin AI Assistant</h3>
+            <div id="chat-box"></div>
+            <input type="text" id="bot-input" placeholder="Define a word...">
+            <button onclick="sendMsg()">Ask AI</button>
         </div>
     </div>
 
     <script>
-        // Load Payments
         async function loadPayments() {
             const res = await fetch('/api/admin/payments');
             const data = await res.json();
@@ -48,13 +55,12 @@
                         <td>${new Date(tx.PaymentDate).toLocaleDateString()}</td>
                         <td>${tx.FeeName}</td>
                         <td>₹${tx.Amount}</td>
-                        <td><a href="${tx.ReceiptURL}" target="_blank">View Receipt</a></td>
+                        <td><a href="${tx.ReceiptURL}" target="_blank" style="color:#ff7f50; font-weight:bold;">View Receipt</a></td>
                     </tr>
                 `;
             });
         }
 
-        // Add Fee
         async function addFee() {
             const name = document.getElementById('new-fee-name').value;
             const amount = document.getElementById('new-fee-amount').value;
@@ -63,14 +69,23 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ feeName: name, amount })
             });
-            alert('Fee Added!');
+            alert('Fee Added Successfully!');
             location.reload();
         }
 
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'login.html';
+        async function sendMsg() {
+            const text = document.getElementById('bot-input').value;
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+            document.getElementById('chat-box').innerHTML += `<div><b>Admin:</b> ${text}</div><div style="color:#667eea"><b>Bot:</b> ${data.response}</div>`;
+            document.getElementById('bot-input').value = "";
         }
+
+        function logout() { localStorage.clear(); window.location.href = 'portal.html'; }
 
         loadPayments();
     </script>

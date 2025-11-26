@@ -1,205 +1,102 @@
-/* General Body & Theme */
-:root {
-  --bg-color: #f0f2f5;
-  --card-bg-color: #ffffff;
-  --text-color: #333;
-  --primary-color: #5a67d8;
-  --primary-color-hover: #434190;
-  --border-color: #e2e8f0;
-  --shadow-color: rgba(0, 0, 0, 0.05);
-}
-
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  margin: 0;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-body.dark {
-  --bg-color: #1a202c;
-  --card-bg-color: #2d3748;
-  --text-color: #edf2f7;
-  --border-color: #4a5568;
-  --shadow-color: rgba(0, 0, 0, 0.2);
-}
-
-/* Header */
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background-color: var(--card-bg-color);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 2px 4px var(--shadow-color);
-}
-
-header h2 {
-  margin: 0;
-  color: var(--primary-color);
-}
-
-header div {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Purple-Blue Gradient */
+    min-height: 100vh;
+    margin: 0;
     display: flex;
-    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    color: #333;
 }
 
-/* Main Content & Layout */
-main {
-  padding: 2rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+/* The "Card" Look */
+.login-container, .dashboard, .card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 500px; /* Keeps it focused like the screenshot */
+    text-align: center;
+    margin: 20px;
 }
 
-section {
-  background-color: var(--card-bg-color);
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px -1px var(--shadow-color), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+h1, h2, h3 {
+    color: #4a4a4a;
+    margin-bottom: 20px;
 }
 
-/* Form Styles */
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+/* Inputs */
+input, select {
+    width: 90%;
+    padding: 15px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+    background: #f9f9f9;
+    transition: 0.3s;
 }
 
-input[type="email"], input[type="text"], input[type="number"], input[type="password"] {
-  padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  font-size: 1rem;
+input:focus, select:focus {
+    border-color: #764ba2;
+    outline: none;
+    background: white;
 }
 
-button, .button {
-  padding: 0.75rem 1.5rem;
-  background-color: var(--primary-color);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-  text-align: center;
+/* Orange Buttons */
+button, .btn {
+    width: 100%;
+    padding: 15px;
+    background-color: #ff7f50; /* Coral Orange */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px;
 }
 
 button:hover {
-  background-color: var(--primary-color-hover);
+    background-color: #ff6347; /* Darker Orange */
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 99, 71, 0.4);
 }
 
-/* Chatbot Styles */
-.chatbot-section h3 {
-  margin-top: 0;
-}
-.chatbot-section p {
-    font-size: 0.9rem;
-    color: #a0aec0;
-    margin-top: -10px;
-    margin-bottom: 20px;
-}
-#chat-window, #chat-window-admin {
-  height: 250px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 1rem;
-  overflow-y: auto;
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-.chat-input-container {
-  display: flex;
-}
-.chat-input-container input {
-  flex-grow: 1;
-  border-right: 0;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-.chat-input-container button {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-}
-.user-message, .bot-message {
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
-  max-width: 80%;
-  line-height: 1.4;
-}
-.user-message {
-  background-color: var(--primary-color);
-  color: white;
-  align-self: flex-end;
-  border-bottom-right-radius: 2px;
-}
-.bot-message {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  align-self: flex-start;
-  border-bottom-left-radius: 2px;
+/* Admin specific red button override */
+button[onclick="logout()"] {
+    background-color: #e74c3c;
+    margin-top: 0;
+    width: auto;
+    padding: 8px 15px;
+    font-size: 14px;
 }
 
-
-/* Admin & User Dashboard Payment List */
-#admin-payments-list, #payments-list {
-  max-height: 400px;
-  overflow-y: auto;
-}
-.payment-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 0.75rem;
-  font-size: 0.9rem;
-}
-.badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-weight: bold;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-}
-.status-due {
-  background-color: #fed7d7;
-  color: #c53030;
-}
-.status-paid {
-  background-color: #c6f6d5;
-  color: #2f855a;
+/* Chat Box */
+.chat-container {
+    margin-top: 30px;
+    border-top: 2px solid #eee;
+    padding-top: 20px;
 }
 
-/* Login Page Specifics */
-.login-container {
-  max-width: 400px;
-  margin: 5rem auto;
-  background: var(--card-bg-color);
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 10px 15px -3px var(--shadow-color), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+#chat-box {
+    background: #f4f4f4;
+    border-radius: 10px;
+    padding: 10px;
+    height: 150px;
+    overflow-y: auto;
+    text-align: left;
+    margin-bottom: 10px;
 }
-.login-toggle {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1.5rem;
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
 }
-.login-toggle button {
-  background: transparent;
-  color: var(--text-color);
-  flex-grow: 1;
-}
-.login-toggle .active {
-  background: var(--primary-color);
-  color: #fff;
-}
+th { background: #764ba2; color: white; padding: 10px; }
+td { padding: 10px; border-bottom: 1px solid #ddd; }
