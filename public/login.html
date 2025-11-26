@@ -3,23 +3,106 @@
 <head>
     <title>Login - CloudKaroPay</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .toggle-btn {
+            width: 48%;
+            padding: 10px;
+            cursor: pointer;
+            background: #e0e0e0;
+            border: none;
+            font-weight: bold;
+        }
+        .active {
+            background: #0078D7;
+            color: white;
+        }
+        .hidden { display: none; }
+        .link { color: #0078D7; cursor: pointer; text-decoration: underline; }
+    </style>
 </head>
 <body>
     <div class="login-container">
-        <h2>Fee Portal Login</h2>
-        <input type="email" id="email" placeholder="Email (admin@college.edu or student@example.com)">
-        <input type="password" id="password" placeholder="Password (admin123 or student123)">
-        <button id="login-btn">Login</button>
-        <p id="error-msg" style="color: red; display:none;"></p>
-        <p style="margin-top:20px; font-size: 12px; color: gray;">
-            Demo User: student@example.com / student123<br>
-            Demo Admin: admin@college.edu / admin123
-        </p>
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <button id="btn-student" class="toggle-btn active" onclick="showStudent()">Student</button>
+            <button id="btn-admin" class="toggle-btn" onclick="showAdmin()">Admin</button>
+        </div>
+
+        <div id="student-login-form">
+            <h2>Student Login</h2>
+            <input type="email" id="stu-email" placeholder="Email" value="student@example.com">
+            <input type="password" id="stu-pass" placeholder="Password" value="student123">
+            <button onclick="login('student')">Login as Student</button>
+            <p style="margin-top:10px;">
+                New User? <span class="link" onclick="showSignup()">Sign Up Here</span>
+            </p>
+        </div>
+
+        <div id="student-signup-form" class="hidden">
+            <h2>Student Sign Up</h2>
+            <input type="text" placeholder="Full Name">
+            <input type="email" placeholder="Email">
+            <input type="password" placeholder="Create Password">
+            <button onclick="mockSignup()">Create Account</button>
+            <p style="margin-top:10px;">
+                Already have an account? <span class="link" onclick="showStudent()">Login Here</span>
+            </p>
+        </div>
+
+        <div id="admin-login-form" class="hidden">
+            <h2>Admin Login</h2>
+            <input type="email" id="adm-email" placeholder="Email" value="admin@college.edu">
+            <input type="password" id="adm-pass" placeholder="Password" value="admin123">
+            <button onclick="login('admin')" style="background-color: #333;">Login as Admin</button>
+        </div>
+
+        <p id="error-msg" style="color: red; display:none; margin-top:10px;"></p>
     </div>
+
     <script>
-        document.getElementById('login-btn').addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+        // --- UI Toggling Logic ---
+        function showStudent() {
+            document.getElementById('student-login-form').classList.remove('hidden');
+            document.getElementById('student-signup-form').classList.add('hidden');
+            document.getElementById('admin-login-form').classList.add('hidden');
+            document.getElementById('btn-student').classList.add('active');
+            document.getElementById('btn-admin').classList.remove('active');
+            hideError();
+        }
+
+        function showAdmin() {
+            document.getElementById('student-login-form').classList.add('hidden');
+            document.getElementById('student-signup-form').classList.add('hidden');
+            document.getElementById('admin-login-form').classList.remove('hidden');
+            document.getElementById('btn-student').classList.remove('active');
+            document.getElementById('btn-admin').classList.add('active');
+            hideError();
+        }
+
+        function showSignup() {
+            document.getElementById('student-login-form').classList.add('hidden');
+            document.getElementById('student-signup-form').classList.remove('hidden');
+            hideError();
+        }
+
+        function hideError() {
+            document.getElementById('error-msg').style.display = 'none';
+        }
+
+        function mockSignup() {
+            alert("Registration Successful! Please login with: student@example.com / student123");
+            showStudent();
+        }
+
+        // --- Login Logic ---
+        async function login(role) {
+            let email, password;
+            if (role === 'student') {
+                email = document.getElementById('stu-email').value;
+                password = document.getElementById('stu-pass').value;
+            } else {
+                email = document.getElementById('adm-email').value;
+                password = document.getElementById('adm-pass').value;
+            }
 
             const res = await fetch('/login', {
                 method: 'POST',
@@ -29,6 +112,13 @@
             const data = await res.json();
 
             if (data.success) {
+                // Check if user is trying to login as admin with student creds or vice versa
+                if (data.role !== role) {
+                    document.getElementById('error-msg').innerText = "Incorrect role for these credentials.";
+                    document.getElementById('error-msg').style.display = 'block';
+                    return;
+                }
+
                 localStorage.setItem('user', JSON.stringify(data));
                 if (data.role === 'admin') {
                     window.location.href = 'admin.html';
@@ -36,9 +126,10 @@
                     window.location.href = 'dashboard.html';
                 }
             } else {
-                alert(data.message);
+                document.getElementById('error-msg').innerText = data.message;
+                document.getElementById('error-msg').style.display = 'block';
             }
-        });
+        }
     </script>
 </body>
 </html>
