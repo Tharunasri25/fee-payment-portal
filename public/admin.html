@@ -1,143 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
     <style>
-        .delete-btn {
-            background-color: #ff4d4d; 
-            padding: 5px 10px; 
-            color: white; 
-            border-radius: 5px; 
-            text-decoration: none; 
-            cursor: pointer;
-            border: none;
-            font-size: 12px;
+        /* --- COOL PURPLE THEME --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            text-align: center;
         }
-        .delete-btn:hover { background-color: #cc0000; }
-        .fee-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+        .dashboard-container { max-width: 900px; margin: 0 auto; }
+        
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        h2 { color: white; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        h3 { margin-top: 0; color: #4a4a4a; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+
+        /* Forms & Inputs */
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 200px; }
+        button {
+            padding: 10px 20px;
+            background-color: #ff7f50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background-color: #ff6347; }
+        .logout-btn { background-color: #e74c3c; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th { background: #764ba2; color: white; padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        .delete-btn { background: #e74c3c; padding: 5px 10px; font-size: 12px; }
+        
+        /* Chat */
+        #chat-box { height: 150px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px; }
+        .fee-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ccc; }
     </style>
 </head>
 <body>
-    <div class="dashboard">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
+
+    <div class="dashboard-container">
+        <div class="header">
             <h2>🛡️ Admin Dashboard</h2>
-            <button onclick="logout()">Logout</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
 
         <div class="card">
-            <h3>➕ Manage Fee Types</h3>
-            <div style="display:flex; gap:10px;">
+            <h3>➕ Manage Fees</h3>
+            <div style="display:flex; gap:10px; margin-bottom: 15px;">
                 <input type="text" id="new-fee-name" placeholder="Fee Name (e.g. Lab Fee)">
                 <input type="number" id="new-fee-amount" placeholder="Amount">
+                <button onclick="addFee()">Add</button>
             </div>
-            <button onclick="addFee()">Add Fee</button>
-            
-            <div id="fee-list" style="margin-top: 20px; text-align: left;">
-                </div>
+            <div id="fee-list"></div>
         </div>
 
         <div class="card">
-            <h3>📜 Transaction History</h3>
+            <h3>📜 Transactions</h3>
             <div style="overflow-x:auto;">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Fee Type</th>
-                            <th>Amount</th>
-                            <th>Receipt</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Date</th><th>Fee</th><th>Amount</th><th>Receipt</th><th>Action</th></tr></thead>
                     <tbody id="tx-table"></tbody>
                 </table>
             </div>
         </div>
 
-        <div class="chat-container">
+        <div class="card">
             <h3>🤖 Admin Assistant</h3>
             <div id="chat-box"></div>
-            <input type="text" id="bot-input" placeholder="Ask me something...">
-            <button onclick="sendMsg()">Ask AI</button>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="bot-input" placeholder="Ask AI..." style="flex-grow:1;">
+                <button onclick="sendMsg()">Send</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Load Everything on Start
-        loadFees();
-        loadPayments();
+        loadFees(); loadPayments();
 
         async function loadFees() {
             const res = await fetch('/api/fees');
             const data = await res.json();
             const list = document.getElementById('fee-list');
-            list.innerHTML = '<h4>Current Active Fees:</h4>';
-            
+            list.innerHTML = '';
             data.forEach(fee => {
-                list.innerHTML += `
-                    <div class="fee-item">
-                        <span>${fee.FeeName} - ₹${fee.Amount}</span>
-                        <button class="delete-btn" onclick="deleteFee(${fee.FeeID})">Remove</button>
-                    </div>
-                `;
+                list.innerHTML += `<div class="fee-item"><span>${fee.FeeName} - ₹${fee.Amount}</span> <button class="delete-btn" onclick="deleteFee(${fee.FeeID})">X</button></div>`;
             });
         }
 
         async function loadPayments() {
             const res = await fetch('/api/admin/payments');
             const data = await res.json();
-            const tbody = document.getElementById('tx-table');
-            tbody.innerHTML = '';
+            const tb = document.getElementById('tx-table');
+            tb.innerHTML = '';
             data.forEach(tx => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${new Date(tx.PaymentDate).toLocaleDateString()}</td>
-                        <td>${tx.FeeName}</td>
-                        <td>₹${tx.Amount}</td>
-                        <td><a href="${tx.ReceiptURL}" target="_blank" style="color:#0078D7; font-weight:bold;">View</a></td>
-                        <td><button class="delete-btn" onclick="deletePayment(${tx.PaymentID})">Delete</button></td>
-                    </tr>
-                `;
+                tb.innerHTML += `<tr>
+                    <td>${new Date(tx.PaymentDate).toLocaleDateString()}</td>
+                    <td>${tx.FeeName}</td>
+                    <td>₹${tx.Amount}</td>
+                    <td><a href="${tx.ReceiptURL}" target="_blank" style="color:#764ba2; font-weight:bold;">View</a></td>
+                    <td><button class="delete-btn" onclick="deletePayment(${tx.PaymentID})">Delete</button></td>
+                </tr>`;
             });
         }
 
         async function addFee() {
-            const name = document.getElementById('new-fee-name').value;
-            const amount = document.getElementById('new-fee-amount').value;
-            await fetch('/api/admin/add-fee', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ feeName: name, amount })
-            });
-            alert('Fee Added!');
-            loadFees(); // Refresh list
-        }
-
-        async function deleteFee(id) {
-            if(!confirm("Delete this fee type?")) return;
-            await fetch(`/api/admin/delete-fee/${id}`, { method: 'DELETE' });
+            await fetch('/api/admin/add-fee', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ feeName: document.getElementById('new-fee-name').value, amount: document.getElementById('new-fee-amount').value })});
             loadFees();
         }
-
-        async function deletePayment(id) {
-            if(!confirm("Delete this transaction record?")) return;
-            await fetch(`/api/admin/delete-payment/${id}`, { method: 'DELETE' });
-            loadPayments();
-        }
-
+        async function deleteFee(id) { if(confirm("Delete?")) { await fetch(`/api/admin/delete-fee/${id}`, {method:'DELETE'}); loadFees(); } }
+        async function deletePayment(id) { if(confirm("Delete?")) { await fetch(`/api/admin/delete-payment/${id}`, {method:'DELETE'}); loadPayments(); } }
+        
         async function sendMsg() {
             const text = document.getElementById('bot-input').value;
-            const res = await fetch('/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text })
-            });
+            const box = document.getElementById('chat-box');
+            box.innerHTML += `<div style="text-align:right; margin:5px;"><b>Admin:</b> ${text}</div>`;
+            const res = await fetch('/chat', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({message:text})});
             const data = await res.json();
-            document.getElementById('chat-box').innerHTML += `<div><b>Admin:</b> ${text}</div><div style="color:#667eea"><b>Bot:</b> ${data.response}</div>`;
+            box.innerHTML += `<div style="text-align:left; margin:5px; color:#764ba2;"><b>Bot:</b> ${data.response}</div>`;
             document.getElementById('bot-input').value = "";
         }
-
         function logout() { localStorage.clear(); window.location.href = 'portal.html'; }
     </script>
 </body>

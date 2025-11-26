@@ -1,62 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        /* --- COOL PURPLE THEME --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+        .dashboard-container {
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        h2, h3 { margin-top: 0; color: #4a4a4a; }
+        h2 { color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-bottom: 15px; }
+        
+        /* Inputs & Selects */
+        select, input {
+            width: 90%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        
+        /* Buttons */
+        button {
+            padding: 12px 25px;
+            background-color: #ff7f50; /* Orange */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { background-color: #ff6347; transform: translateY(-2px); }
+        .logout-btn { background-color: #e74c3c; padding: 8px 15px; font-size: 14px; }
+
+        /* Receipt Area */
+        #receipt-area {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #2ecc71;
+            margin-top: 15px;
+            display: none;
+        }
+        #receipt-link {
+            color: #27ae60;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        /* Chat Section */
+        .chat-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        #chat-box {
+            flex-grow: 1;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .chat-input-area { display: flex; gap: 10px; }
+        #bot-input { flex-grow: 1; margin: 0; }
+    </style>
 </head>
 <body>
-    <div class="dashboard">
+
+    <div class="dashboard-container">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <h2>🎓 Student Dashboard</h2>
-            <button onclick="logout()">Logout</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
 
         <div class="card">
             <h3>💳 Pay Fees</h3>
-            <select id="fee-select">
-                <option value="">Loading fees...</option>
-            </select>
+            <select id="fee-select"><option>Loading...</option></select>
             <button id="pay-btn">Pay Now</button>
             
-            <div id="receipt-area" style="margin-top:20px; display:none; background:#e8f5e9; padding:15px; border-radius:10px; color:green;">
-                <p>✅ Payment Successful!</p>
-                <a id="receipt-link" href="#" target="_blank" style="font-weight:bold; color:#2ecc71;">Download Your Receipt</a>
+            <div id="receipt-area">
+                <h3 style="color:#27ae60;">✅ Payment Successful!</h3>
+                <a id="receipt-link" href="#" target="_blank">Download Official Cloud Receipt</a>
             </div>
         </div>
 
-        <div class="chat-container">
-            <h3>🤖 AI Support Bot</h3>
-            <div id="chat-box"></div>
-            <input type="text" id="bot-input" placeholder="Ask me anything...">
-            <button onclick="sendMsg()">Ask</button>
+        <div class="card chat-section">
+            <h3>🤖 AI Support Assistant</h3>
+            <div id="chat-box">
+                <div style="color:#666;">Hello! I can define words or help with fees.</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="bot-input" placeholder="Type your question...">
+                <button onclick="sendMsg()" style="margin:0;">Send</button>
+            </div>
         </div>
     </div>
 
     <script>
-        let selectedFeeName = "";
-        let selectedAmount = 0;
+        let selectedFeeName = "", selectedAmount = 0;
 
         async function loadFees() {
-            const res = await fetch('/api/fees');
-            const data = await res.json();
-            const select = document.getElementById('fee-select');
-            select.innerHTML = '';
-            data.forEach(fee => {
-                const opt = document.createElement('option');
-                opt.value = fee.Amount;
-                opt.text = `${fee.FeeName} - ₹${fee.Amount}`;
-                opt.setAttribute('data-name', fee.FeeName);
-                select.appendChild(opt);
-            });
-            select.addEventListener('change', (e) => {
-                selectedAmount = e.target.value;
-                selectedFeeName = e.target.options[e.target.selectedIndex].getAttribute('data-name');
-            });
-            if(data.length > 0) {
-                selectedAmount = data[0].Amount;
-                selectedFeeName = data[0].FeeName;
-            }
+            try {
+                const res = await fetch('/api/fees');
+                const data = await res.json();
+                const select = document.getElementById('fee-select');
+                select.innerHTML = '';
+                data.forEach(fee => {
+                    const opt = document.createElement('option');
+                    opt.value = fee.Amount;
+                    opt.text = `${fee.FeeName} - ₹${fee.Amount}`;
+                    opt.setAttribute('data-name', fee.FeeName);
+                    select.appendChild(opt);
+                });
+                if(data.length > 0) {
+                    select.selectedIndex = 0;
+                    selectedAmount = data[0].Amount;
+                    selectedFeeName = data[0].FeeName;
+                }
+                select.addEventListener('change', (e) => {
+                    selectedAmount = e.target.value;
+                    selectedFeeName = e.target.options[e.target.selectedIndex].getAttribute('data-name');
+                });
+            } catch (e) { console.log(e); }
         }
 
         document.getElementById('pay-btn').addEventListener('click', async () => {
@@ -68,30 +166,25 @@
             const order = await res.json();
             
             const options = {
-                "key": "YOUR_TEST_KEY_ID_HERE", // REPLACE WITH YOUR KEY
+                "key": "rzp_test_RjtOijK4mcGPH5", // REPLACE THIS
                 "amount": order.amount,
                 "currency": "INR",
+                "name": "Fee Payment",
                 "order_id": order.id,
                 "handler": async function (response) {
                     document.getElementById('pay-btn').innerText = "Generating Receipt...";
-                    
-                    // Send to backend to Auto-Generate Receipt
                     const recRes = await fetch('/api/record-payment', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            feeName: selectedFeeName, 
-                            amount: selectedAmount,
-                            paymentId: response.razorpay_payment_id
+                            feeName: selectedFeeName, amount: selectedAmount, paymentId: response.razorpay_payment_id
                         })
                     });
                     const recData = await recRes.json();
-                    
                     if(recData.success) {
                         document.getElementById('receipt-area').style.display = 'block';
                         document.getElementById('receipt-link').href = recData.receiptUrl;
-                        document.getElementById('pay-btn').innerText = "Pay Now";
-                        alert("Payment Successful! Receipt Generated.");
+                        document.getElementById('pay-btn').style.display = 'none';
                     }
                 }
             };
@@ -100,18 +193,17 @@
 
         async function sendMsg() {
             const text = document.getElementById('bot-input').value;
-            const res = await fetch('/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text })
-            });
+            if(!text) return;
+            const box = document.getElementById('chat-box');
+            box.innerHTML += `<div style="margin:10px 0; text-align:right;"><b>You:</b> ${text}</div>`;
+            const res = await fetch('/chat', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({message:text})});
             const data = await res.json();
-            document.getElementById('chat-box').innerHTML += `<div><b>You:</b> ${text}</div><div style="color:#667eea"><b>Bot:</b> ${data.response}</div>`;
+            box.innerHTML += `<div style="margin:10px 0; text-align:left; color:#667eea;"><b>Bot:</b> ${data.response}</div>`;
             document.getElementById('bot-input').value = "";
+            box.scrollTop = box.scrollHeight;
         }
 
         function logout() { localStorage.clear(); window.location.href = 'portal.html'; }
-        
         loadFees();
     </script>
 </body>
