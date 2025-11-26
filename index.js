@@ -151,4 +151,11 @@ app.post('/chat', async (req, res) => {
     }
 });
 
+// ... (rest of your code) ...
+
+// FORCE ROOT URL TO SERVE PORTAL.HTML
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'portal.html'));
+});
+
 app.listen(port, () => console.log(`Server running on port ${port}`));

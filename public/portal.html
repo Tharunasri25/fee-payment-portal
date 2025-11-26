@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FINAL FEE PORTAL</title>
+    <style>
+        body { font-family: sans-serif; background-color: #eef2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .tabs { display: flex; background: #ddd; border-radius: 8px; padding: 5px; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 10px; border: none; background: transparent; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        .tab.active { background: white; color: #0078D7; shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        .btn { width: 100%; padding: 12px; background: #0078D7; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .btn:hover { background: #005a9e; }
+        .hidden { display: none; }
+        .link { color: #0078D7; cursor: pointer; text-decoration: underline; margin-top: 10px; display: block; }
+        h2 { color: #333; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Fee Payment Portal</h2>
+
+    <div class="tabs">
+        <button id="tab-student" class="tab active" onclick="setRole('student')">Student</button>
+        <button id="tab-admin" class="tab" onclick="setRole('admin')">Admin</button>
+    </div>
+
+    <div id="form-student">
+        <input type="email" id="stu-email" value="student@example.com" placeholder="Student Email">
+        <input type="password" id="stu-pass" value="student123" placeholder="Password">
+        <button class="btn" onclick="login('student')">Login as Student</button>
+        <span class="link" onclick="alert('Signup successful! Please login.')">New User? Sign Up</span>
+    </div>
+
+    <div id="form-admin" class="hidden">
+        <input type="email" id="adm-email" value="admin@college.edu" placeholder="Admin Email">
+        <input type="password" id="adm-pass" value="admin123" placeholder="Password">
+        <button class="btn" onclick="login('admin')" style="background: #333;">Login as Admin</button>
+    </div>
+</div>
+
+<script>
+    function setRole(role) {
+        if(role === 'student') {
+            document.getElementById('form-student').classList.remove('hidden');
+            document.getElementById('form-admin').classList.add('hidden');
+            document.getElementById('tab-student').classList.add('active');
+            document.getElementById('tab-admin').classList.remove('active');
+        } else {
+            document.getElementById('form-student').classList.add('hidden');
+            document.getElementById('form-admin').classList.remove('hidden');
+            document.getElementById('tab-student').classList.remove('active');
+            document.getElementById('tab-admin').classList.add('active');
+        }
+    }
+
+    async function login(role) {
+        const email = role === 'student' ? document.getElementById('stu-email').value : document.getElementById('adm-email').value;
+        const password = role === 'student' ? document.getElementById('stu-pass').value : document.getElementById('adm-pass').value;
+
+        try {
+            const res = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                if(data.role !== role) return alert("Wrong role selected!");
+                localStorage.setItem('user', JSON.stringify(data));
+                window.location.href = role === 'admin' ? 'admin.html' : 'dashboard.html';
+            } else {
+                alert(data.message);
+            }
+        } catch (e) { alert("Server Error"); }
+    }
+</script>
+
+</body>
+</html>
