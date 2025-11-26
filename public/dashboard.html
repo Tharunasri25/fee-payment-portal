@@ -1,33 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>User Dashboard - Fee Payment Portal</title>
-  <link rel="stylesheet" href="style.css">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
-  <header>
-    <h2>Welcome, User!</h2>
-    <div>
-        <button id="theme-toggle">Toggle Dark/Light</button>
-        <button id="logout-btn">Logout</button>
+    <div class="dashboard">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h1>Student Dashboard</h1>
+            <button onclick="logout()" style="background:red;">Logout</button>
+        </div>
+
+        <div class="payment-container">
+            <h3>💳 Select Fee to Pay</h3>
+            <select id="fee-select" style="padding:10px; width:80%;">
+                <option value="">Loading fees...</option>
+            </select>
+            <button id="pay-btn" style="margin-top:10px;">Pay Selected Fee</button>
+        </div>
+
+        <div class="payment-container">
+            <h3>📤 Upload Receipt</h3>
+            <input type="file" id="receipt-file">
+            <button id="upload-btn">Upload to Cloud</button>
+            <p id="upload-status"></p>
+        </div>
+
+        <div class="chat-container">
+            <h3>🤖 Dictionary Bot</h3>
+            <div id="chat-box" style="height:100px; overflow-y:scroll; border:1px solid #ccc; margin-bottom:10px;"></div>
+            <input type="text" id="bot-input" placeholder="Type a word...">
+            <button onclick="sendMsg()">Define</button>
+        </div>
     </div>
-  </header>
-  <main>
-    <section class="payments-section">
-      <h3>Your Payments</h3>
-      <div id="payments-list"></div>
-    </section>
-    <section class="chatbot-section">
-      <h3>Dictionary Bot</h3>
-      <p>A fun way for students to learn new words</p>
-      <div id="chat-window"></div>
-      <div class="chat-input-container">
-        <input type="text" id="chat-input" placeholder="Enter a word..." />
-        <button id="chat-send">Send</button>
-      </div>
-    </section>
-  </main>
-  <script src="dashboard.js"></script>
+
+    <script>
+        let selectedFeeName = "";
+        let selectedAmount = 0;
+        let lastReceiptUrl = "";
+
+        // Load Fees from DB
+        async function loadFees() {
+            const res = await fetch('/api/fees');
+            const data = await res.json();
+            const select = document.getElementById('fee-select');
+            select.innerHTML = '';
+            data.forEach(fee => {
+                const opt = document.createElement('option');
+                opt.value = fee.Amount;
+                opt.text = `${fee.FeeName} - ₹${fee.Amount}`;
+                opt.setAttribute('data-name', fee.FeeName);
+                select.appendChild(opt);
+            });
+            
+            // Listen for selection change
+            select.addEventListener('change', (e) => {
+                selectedAmount = e.target.value;
+                selectedFeeName = e.target.options[e.target.selectedIndex].getAttribute('data-name');
+            });
+            // Init selection
+            if(data.length > 0) {
+                selectedAmount = data[0].Amount;
+                selectedFeeName = data[0].FeeName;
+            }
+        }
+
+        // Razorpay Payment
+        document.getElementById('pay-btn').addEventListener('click', async () => {
+            const res = await fetch('/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: selectedAmount })
+            });
+            const order = await res.json();
+            
+            const options = {
+                "key": "rzp_test_RjtOijK4mcGPH5", // REPLACE THIS WITH YOUR KEY!!!
+                "amount": order.amount,
+                "currency": "INR",
+                "order_id": order.id,
+                "handler": async function (response) {
+                    alert("Payment Successful! Saving to DB...");
+                    // Record in DB
+                    await fetch('/api/record-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            feeName: selectedFeeName, 
+                            amount: selectedAmount,
+                            receiptUrl: lastReceiptUrl || "Pending Upload"
+                        })
+                    });
+                    alert("Transaction Recorded!");
+                }
+            };
+            new Razorpay(options).open();
+        });
+
+        // Upload
+        document.getElementById('upload-btn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('receipt-file');
+            const formData = new FormData();
+            formData.append('receipt', fileInput.files[0]);
+            
+            const res = await fetch('/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            if(data.success) {
+                lastReceiptUrl = data.url;
+                document.getElementById('upload-status').innerHTML = `<a href="${data.url}" target="_blank">View Receipt</a>`;
+            }
+        });
+
+        // Chat
+        async function sendMsg() {
+            const text = document.getElementById('bot-input').value;
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+            document.getElementById('chat-box').innerHTML += `<div><b>Bot:</b> ${data.response}</div>`;
+        }
+
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+        
+        loadFees();
+    </script>
 </body>
 </html>

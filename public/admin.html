@@ -1,42 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Dashboard - Fee Payment Portal</title>
-  <link rel="stylesheet" href="style.css">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h2>Admin Dashboard</h2>
-    <div>
-      <button id="theme-toggle">Toggle Dark/Light</button>
-      <button id="logout-btn">Logout</button>
+    <div class="dashboard">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h1>Admin Dashboard</h1>
+            <button onclick="logout()" style="background:red;">Logout</button>
+        </div>
+
+        <div class="payment-container" style="text-align:left;">
+            <h3>➕ Add New Fee Type</h3>
+            <input type="text" id="new-fee-name" placeholder="Fee Name (e.g., Breakage Fee)">
+            <input type="number" id="new-fee-amount" placeholder="Amount">
+            <button onclick="addFee()">Add Fee</button>
+        </div>
+
+        <div class="payment-container" style="text-align:left; margin-top: 20px;">
+            <h3>📜 Transaction History</h3>
+            <table border="1" width="100%" style="border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Fee Type</th>
+                        <th>Amount</th>
+                        <th>Receipt</th>
+                    </tr>
+                </thead>
+                <tbody id="tx-table">
+                    </tbody>
+            </table>
+        </div>
     </div>
-  </header>
-  <main>
-    <section class="create-payment-section">
-      <h3>Create Payment Request</h3>
-      <form id="create-payment-form">
-        <input type="email" id="student-email" placeholder="Student Email" required />
-        <input type="text" id="fee-desc" placeholder="Fee Description" required />
-        <input type="number" id="fee-amount" placeholder="Amount (INR)" required />
-        <button type="submit">Create Payment</button>
-      </form>
-    </section>
-    <section class="dashboard-analytics">
-      <h3>Payments Overview</h3>
-      <div id="admin-payments-list"></div>
-    </section>
-    <section class="chatbot-section">
-      <h3>Dictionary Bot</h3>
-      <p>A fun way for students to learn new words</p>
-      <div id="chat-window-admin"></div>
-      <div class="chat-input-container">
-        <input type="text" id="chat-input-admin" placeholder="Enter a word..." />
-        <button id="chat-send-admin">Send</button>
-      </div>
-    </section>
-  </main>
-  <script src="admin.js"></script>
+
+    <script>
+        // Load Payments
+        async function loadPayments() {
+            const res = await fetch('/api/admin/payments');
+            const data = await res.json();
+            const tbody = document.getElementById('tx-table');
+            tbody.innerHTML = '';
+            data.forEach(tx => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${new Date(tx.PaymentDate).toLocaleDateString()}</td>
+                        <td>${tx.FeeName}</td>
+                        <td>₹${tx.Amount}</td>
+                        <td><a href="${tx.ReceiptURL}" target="_blank">View Receipt</a></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Add Fee
+        async function addFee() {
+            const name = document.getElementById('new-fee-name').value;
+            const amount = document.getElementById('new-fee-amount').value;
+            await fetch('/api/admin/add-fee', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ feeName: name, amount })
+            });
+            alert('Fee Added!');
+            location.reload();
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        loadPayments();
+    </script>
 </body>
 </html>
