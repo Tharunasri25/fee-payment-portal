@@ -3,46 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>College Fee Portal</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <title>Fee Portal - Login</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 350px;
+            text-align: center;
+        }
+        .toggle-container {
+            display: flex;
+            background: #e4e6eb;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 4px;
+        }
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        .toggle-btn.active {
+            background: #ffffff;
+            color: #0078D7;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        input {
+            width: 90%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        button.action-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #0078D7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        button.action-btn:hover {
+            background-color: #005a9e;
+        }
+        .link {
+            color: #0078D7;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: underline;
+        }
+        .hidden { display: none; }
+        .error { color: red; font-size: 13px; margin-top: 10px; display: none; }
+    </style>
 </head>
 <body>
 
-    <div id="login-section" class="container">
-        <h1>Student Login</h1>
-        <div class="form-group">
-            <input type="email" id="login-email" placeholder="Email (student@example.com)">
-            <input type="password" id="login-password" placeholder="Password (student123)">
-            <button id="login-btn">Login</button>
+    <div class="login-card">
+        <h2 style="margin-top: 0; color: #333;">Fee Portal</h2>
+        
+        <div class="toggle-container">
+            <button id="btn-student" class="toggle-btn active" onclick="switchTab('student')">Student</button>
+            <button id="btn-admin" class="toggle-btn" onclick="switchTab('admin')">Admin</button>
         </div>
+
+        <div id="student-login">
+            <input type="email" id="stu-email" placeholder="Student Email" value="student@example.com">
+            <input type="password" id="stu-pass" placeholder="Password" value="student123">
+            <button class="action-btn" onclick="login('student')">Login</button>
+            <p style="margin-top: 15px; font-size: 14px;">
+                New User? <span class="link" onclick="showSignup()">Sign Up</span>
+            </p>
+        </div>
+
+        <div id="admin-login" class="hidden">
+            <input type="email" id="adm-email" placeholder="Admin Email" value="admin@college.edu">
+            <input type="password" id="adm-pass" placeholder="Password" value="admin123">
+            <button class="action-btn" onclick="login('admin')" style="background-color: #333;">Admin Login</button>
+        </div>
+
+        <div id="student-signup" class="hidden">
+            <h3 style="margin: 0 0 15px 0;">Create Account</h3>
+            <input type="text" placeholder="Full Name">
+            <input type="email" placeholder="Email Address">
+            <input type="password" placeholder="Create Password">
+            <button class="action-btn" onclick="mockSignup()">Sign Up</button>
+            <p style="margin-top: 15px; font-size: 14px;">
+                Have an account? <span class="link" onclick="switchTab('student')">Login</span>
+            </p>
+        </div>
+
+        <p id="error-msg" class="error"></p>
     </div>
 
-    <div id="dashboard-section" class="container" style="display:none;">
-        <div class="header">
-            <h2 id="welcome-msg">Welcome</h2>
-            <button id="logout-btn" style="background:red;">Logout</button>
-        </div>
+    <script>
+        function switchTab(role) {
+            document.getElementById('error-msg').style.display = 'none';
+            if(role === 'student') {
+                document.getElementById('student-login').classList.remove('hidden');
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('student-signup').classList.add('hidden');
+                document.getElementById('btn-student').classList.add('active');
+                document.getElementById('btn-admin').classList.remove('active');
+            } else {
+                document.getElementById('student-login').classList.add('hidden');
+                document.getElementById('admin-login').classList.remove('hidden');
+                document.getElementById('student-signup').classList.add('hidden');
+                document.getElementById('btn-student').classList.remove('active');
+                document.getElementById('btn-admin').classList.add('active');
+            }
+        }
 
-        <div class="payment-container">
-            <h3>Pay Fees</h3>
-            <input type="number" id="amount" placeholder="Amount (INR)">
-            <button id="pay-btn">Pay Now via Razorpay</button>
-            
-            <h3>Upload Receipt</h3>
-            <input type="file" id="receipt-file">
-            <button id="upload-btn">Upload to Azure Blob</button>
-            <p id="upload-status"></p>
-        </div>
+        function showSignup() {
+            document.getElementById('student-login').classList.add('hidden');
+            document.getElementById('student-signup').classList.remove('hidden');
+            document.getElementById('admin-login').classList.add('hidden');
+            document.getElementById('error-msg').style.display = 'none';
+        }
 
-        <div class="chat-container">
-            <h3>Support Bot</h3>
-            <div id="chat-box" style="height:150px; overflow-y:scroll; border:1px solid #ccc; padding:10px;"></div>
-            <input type="text" id="user-input" placeholder="Type a word...">
-            <button id="send-btn">Send</button>
-        </div>
-    </div>
+        function mockSignup() {
+            alert("Account created successfully! Please login.");
+            switchTab('student');
+        }
 
-    <script src="script.js"></script>
+        async function login(role) {
+            const errorEl = document.getElementById('error-msg');
+            let email, password;
+
+            if (role === 'student') {
+                email = document.getElementById('stu-email').value;
+                password = document.getElementById('stu-pass').value;
+            } else {
+                email = document.getElementById('adm-email').value;
+                password = document.getElementById('adm-pass').value;
+            }
+
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    if (data.role !== role) {
+                        errorEl.innerText = "Wrong role selected for this email.";
+                        errorEl.style.display = 'block';
+                        return;
+                    }
+                    localStorage.setItem('user', JSON.stringify(data));
+                    if (data.role === 'admin') {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                } else {
+                    errorEl.innerText = data.message;
+                    errorEl.style.display = 'block';
+                }
+            } catch (err) {
+                errorEl.innerText = "Server Error. Please try again.";
+                errorEl.style.display = 'block';
+            }
+        }
+    </script>
 </body>
 </html>
