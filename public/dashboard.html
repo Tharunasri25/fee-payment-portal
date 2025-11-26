@@ -6,7 +6,9 @@
     <title>Student Dashboard</title>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
-        /* --- COOL PURPLE THEME --- */
+        /* --- ALIGNMENT FIXED CSS --- */
+        * { box-sizing: border-box; }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -16,6 +18,7 @@
             justify-content: center;
             align-items: center;
             color: #333;
+            padding: 20px;
         }
         .dashboard-container {
             width: 100%;
@@ -23,8 +26,15 @@
             height: 90vh;
             display: flex;
             flex-direction: column;
-            padding: 20px;
         }
+        .header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px;
+        }
+        h2 { color: white; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
         /* Cards */
         .card {
             background: rgba(255, 255, 255, 0.95);
@@ -34,35 +44,35 @@
             margin-bottom: 20px;
             text-align: center;
         }
-        h2, h3 { margin-top: 0; color: #4a4a4a; }
-        h2 { color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.2); margin-bottom: 15px; }
+        h3 { margin-top: 0; color: #4a4a4a; margin-bottom: 15px; }
         
-        /* Inputs & Selects */
-        select, input {
-            width: 90%;
+        select {
+            width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 16px;
-            margin: 10px 0;
+            margin-bottom: 15px;
+            background: white;
         }
         
         /* Buttons */
-        button {
+        button.pay-btn {
             padding: 12px 25px;
-            background-color: #ff7f50; /* Orange */
+            background-color: #ff7f50;
             color: white;
             border: none;
             border-radius: 8px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            width: 100%;
             transition: 0.3s;
         }
-        button:hover { background-color: #ff6347; transform: translateY(-2px); }
-        .logout-btn { background-color: #e74c3c; padding: 8px 15px; font-size: 14px; }
+        button.pay-btn:hover { background-color: #ff6347; }
+        .logout-btn { background-color: #e74c3c; padding: 8px 20px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
 
-        /* Receipt Area */
+        /* Receipt */
         #receipt-area {
             background: #e8f5e9;
             padding: 15px;
@@ -71,14 +81,9 @@
             margin-top: 15px;
             display: none;
         }
-        #receipt-link {
-            color: #27ae60;
-            font-weight: bold;
-            text-decoration: none;
-            font-size: 18px;
-        }
+        #receipt-link { color: #27ae60; font-weight: bold; text-decoration: none; font-size: 18px; }
 
-        /* Chat Section */
+        /* Chat Section - Grows to fill bottom */
         .chat-section {
             flex-grow: 1;
             display: flex;
@@ -91,17 +96,31 @@
             padding: 15px;
             overflow-y: auto;
             border: 1px solid #ddd;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             text-align: left;
         }
         .chat-input-area { display: flex; gap: 10px; }
-        #bot-input { flex-grow: 1; margin: 0; }
+        #bot-input { 
+            flex-grow: 1; 
+            padding: 12px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+        }
+        button.send-btn {
+            background-color: #764ba2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
     <div class="dashboard-container">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="header">
             <h2>🎓 Student Dashboard</h2>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
@@ -109,22 +128,22 @@
         <div class="card">
             <h3>💳 Pay Fees</h3>
             <select id="fee-select"><option>Loading...</option></select>
-            <button id="pay-btn">Pay Now</button>
+            <button id="pay-btn" class="pay-btn">Pay Now</button>
             
             <div id="receipt-area">
                 <h3 style="color:#27ae60;">✅ Payment Successful!</h3>
-                <a id="receipt-link" href="#" target="_blank">Download Official Cloud Receipt</a>
+                <a id="receipt-link" href="#" target="_blank">Download Receipt</a>
             </div>
         </div>
 
         <div class="card chat-section">
             <h3>🤖 AI Support Assistant</h3>
             <div id="chat-box">
-                <div style="color:#666;">Hello! I can define words or help with fees.</div>
+                <div style="color:#666;">Hello! Ask me anything.</div>
             </div>
             <div class="chat-input-area">
                 <input type="text" id="bot-input" placeholder="Type your question...">
-                <button onclick="sendMsg()" style="margin:0;">Send</button>
+                <button class="send-btn" onclick="sendMsg()">Send</button>
             </div>
         </div>
     </div>
@@ -166,7 +185,7 @@
             const order = await res.json();
             
             const options = {
-                "key": "rzp_test_RjtOijK4mcGPH5", // REPLACE THIS
+                "key": "rzp_test_RjtOijK4mcGPH5", // PASTE YOUR REAL KEY HERE
                 "amount": order.amount,
                 "currency": "INR",
                 "name": "Fee Payment",
@@ -198,7 +217,7 @@
             box.innerHTML += `<div style="margin:10px 0; text-align:right;"><b>You:</b> ${text}</div>`;
             const res = await fetch('/chat', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({message:text})});
             const data = await res.json();
-            box.innerHTML += `<div style="margin:10px 0; text-align:left; color:#667eea;"><b>Bot:</b> ${data.response}</div>`;
+            box.innerHTML += `<div style="margin:10px 0; text-align:left; color:#764ba2;"><b>Bot:</b> ${data.response}</div>`;
             document.getElementById('bot-input').value = "";
             box.scrollTop = box.scrollHeight;
         }
