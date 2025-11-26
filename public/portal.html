@@ -3,25 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FINAL FEE PORTAL</title>
-    <style>
-        body { font-family: sans-serif; background-color: #eef2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        .tabs { display: flex; background: #ddd; border-radius: 8px; padding: 5px; margin-bottom: 20px; }
-        .tab { flex: 1; padding: 10px; border: none; background: transparent; cursor: pointer; font-weight: bold; border-radius: 5px; }
-        .tab.active { background: white; color: #0078D7;box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        .btn { width: 100%; padding: 12px; background: #0078D7; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .btn:hover { background: #005a9e; }
+    <title>College Fee Portal</title>
+    <link rel="stylesheet" href="styles.css"> <style>
+        /* OVERRIDE STYLES FOR COOL UI */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Purple Gradient */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .card { 
+            background: rgba(255, 255, 255, 0.95); /* Glass Effect */
+            padding: 40px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+            width: 100%; 
+            max-width: 400px; 
+            text-align: center; 
+        }
+        h2 { color: #4a4a4a; margin-bottom: 25px; }
+        
+        /* TABS */
+        .tabs { display: flex; background: #eee; border-radius: 10px; padding: 5px; margin-bottom: 25px; }
+        .tab { 
+            flex: 1; 
+            padding: 12px; 
+            border: none; 
+            background: transparent; 
+            cursor: pointer; 
+            font-weight: bold; 
+            border-radius: 8px; 
+            color: #666;
+            transition: 0.3s;
+        }
+        .tab.active { 
+            background: #764ba2; /* Purple Active Tab */
+            color: white; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        
+        /* INPUTS */
+        input { 
+            width: 90%; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 10px; 
+            font-size: 15px; 
+            background: #f9f9f9;
+        }
+        input:focus { outline: none; border-color: #764ba2; background: white; }
+
+        /* BUTTONS */
+        .btn { 
+            width: 100%; 
+            padding: 15px; 
+            background-color: #ff7f50; /* Coral Orange */
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 18px; 
+            font-weight: bold; 
+            margin-top: 15px; 
+            transition: 0.3s;
+        }
+        .btn:hover { 
+            background-color: #ff6347; 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(255, 99, 71, 0.3);
+        }
+        
         .hidden { display: none; }
-        .link { color: #0078D7; cursor: pointer; text-decoration: underline; margin-top: 10px; display: block; }
-        h2 { color: #333; margin-bottom: 20px; }
+        .link { color: #764ba2; cursor: pointer; text-decoration: underline; margin-top: 15px; display: block; font-weight: 500; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Fee Payment Portal</h2>
+    <h2>🎓 Fee Portal</h2>
 
     <div class="tabs">
         <button id="tab-student" class="tab active" onclick="setRole('student')">Student</button>
@@ -38,7 +101,7 @@
     <div id="form-admin" class="hidden">
         <input type="email" id="adm-email" value="admin@college.edu" placeholder="Admin Email">
         <input type="password" id="adm-pass" value="admin123" placeholder="Password">
-        <button class="btn" onclick="login('admin')" style="background: #333;">Login as Admin</button>
+        <button class="btn" onclick="login('admin')" style="background: #444;">Login as Admin</button>
     </div>
 </div>
 
@@ -76,7 +139,7 @@
             } else {
                 alert(data.message);
             }
-        } catch (e) { alert("Server Error"); }
+        } catch (e) { alert("Server Error. Check backend."); }
     }
 </script>
 

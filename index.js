@@ -9,7 +9,7 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// --- Configurations ---
+// --- Configs ---
 const dbConfig = process.env.AZURE_SQL_CONNECTION_STRING;
 const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 const containerName = 'receipts'; 
@@ -22,7 +22,7 @@ const razorpay = new Razorpay({
 // --- Middleware ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public')); // Serves HTML, CSS, JS
+app.use(express.static('public'));
 
 // --- Database Helper ---
 async function getDb() {
@@ -37,17 +37,12 @@ app.get('/', (req, res) => {
 // --- 2. AUTHENTICATION ---
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
-
-    // Hardcoded Admin
     if (email === 'admin@college.edu' && password === 'admin123') {
         return res.json({ success: true, role: 'admin', name: 'Principal Admin' });
     }
-    
-    // Hardcoded Student
     if (email === 'student@example.com' && password === 'student123') {
         return res.json({ success: true, role: 'student', name: 'Rahul Sharma' });
     }
-
     res.status(401).json({ success: false, message: 'Invalid Credentials' });
 });
 
@@ -55,11 +50,9 @@ app.post('/login', (req, res) => {
 app.get('/api/admin/payments', async (req, res) => {
     try {
         const pool = await getDb();
-        // Fetch latest payments first
         const result = await pool.request().query('SELECT * FROM Payments ORDER BY PaymentDate DESC');
         res.json(result.recordset);
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: 'Failed to fetch payments' });
     }
 });
@@ -78,6 +71,32 @@ app.post('/api/admin/add-fee', async (req, res) => {
     }
 });
 
+// NEW: Delete a Payment Record
+app.delete('/api/admin/delete-payment/:id', async (req, res) => {
+    try {
+        const pool = await getDb();
+        await pool.request()
+            .input('id', sql.Int, req.params.id)
+            .query('DELETE FROM Payments WHERE PaymentID = @id');
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Delete failed' });
+    }
+});
+
+// NEW: Delete a Fee Type
+app.delete('/api/admin/delete-fee/:id', async (req, res) => {
+    try {
+        const pool = await getDb();
+        await pool.request()
+            .input('id', sql.Int, req.params.id)
+            .query('DELETE FROM FeeTypes WHERE FeeID = @id');
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Delete failed' });
+    }
+});
+
 // --- 4. STUDENT FEATURES ---
 app.get('/api/fees', async (req, res) => {
     try {
@@ -89,57 +108,36 @@ app.get('/api/fees', async (req, res) => {
     }
 });
 
-// --- NEW: AUTO-GENERATE RECEIPT & SAVE ---
 app.post('/api/record-payment', async (req, res) => {
     try {
         const { feeName, amount, paymentId } = req.body; 
+        // 1. Generate Receipt Content
+        const receiptContent = `RECEIPT\nID: ${paymentId}\nType: ${feeName}\nAmount: ${amount}\nStatus: PAID`;
         
-        // 1. Create Receipt Content
-        const receiptContent = `
-        COLLEGE FEE RECEIPT
-        -------------------
-        Date: ${new Date().toLocaleString()}
-        Transaction ID: ${paymentId}
-        Student: Rahul Sharma (ID: 123)
-        
-        Fee Type: ${feeName}
-        Amount Paid: INR ${amount}
-        
-        Status: SUCCESS - Verified by Razorpay
-        -------------------
-        Thank you for your payment.
-        `;
-
-        // 2. Upload Receipt to Azure Blob Storage
+        // 2. Upload to Azure Blob
         const containerClient = blobServiceClient.getContainerClient(containerName);
-        const blobName = `receipt-${paymentId}.txt`; // Naming it by Transaction ID
+        const blobName = `receipt-${paymentId}.txt`;
         const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-        
-        // Upload the string content directly
         await blockBlobClient.uploadData(Buffer.from(receiptContent));
-        const receiptUrl = blockBlobClient.url;
-
-        // 3. Save Record to Database
+        
+        // 3. Save to DB
         const pool = await getDb();
         await pool.request()
             .input('fee', sql.NVarChar, feeName)
             .input('amount', sql.Decimal(10, 2), amount)
-            .input('receipt', sql.NVarChar, receiptUrl) // Saving the Azure link
+            .input('receipt', sql.NVarChar, blockBlobClient.url)
             .query("INSERT INTO Payments (FeeName, Amount, ReceiptURL) VALUES (@fee, @amount, @receipt)");
 
-        // 4. Send the Link back to the Student
-        res.json({ success: true, receiptUrl: receiptUrl });
-
+        res.json({ success: true, receiptUrl: blockBlobClient.url });
     } catch (err) {
-        console.error("Receipt Logic Error:", err);
-        res.status(500).json({ error: 'Failed to generate receipt' });
+        res.status(500).json({ error: 'Failed to record' });
     }
 });
 
 app.post('/create-order', async (req, res) => {
     try {
         const options = {
-            amount: req.body.amount * 100, // Convert to paise
+            amount: req.body.amount * 100,
             currency: "INR",
             receipt: "receipt_" + Math.random(),
         };
@@ -150,19 +148,16 @@ app.post('/create-order', async (req, res) => {
     }
 });
 
-// --- 5. SHARED FEATURES (Chatbot) ---
+// --- 5. CHATBOT ---
 app.post('/chat', async (req, res) => {
     try {
         const word = req.body.message.trim();
-        // Using Free Dictionary API
         const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
         const data = await response.json();
-        
         if (Array.isArray(data) && data.length > 0) {
-            const def = data[0].meanings[0].definitions[0].definition;
-            res.json({ response: `Definition: ${def}` });
+            res.json({ response: `Definition: ${data[0].meanings[0].definitions[0].definition}` });
         } else {
-            res.json({ response: "I couldn't find a definition for that word." });
+            res.json({ response: "Definition not found." });
         }
     } catch (error) {
         res.status(500).json({ error: "Bot unavailable" });

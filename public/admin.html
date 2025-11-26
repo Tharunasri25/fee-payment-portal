@@ -3,6 +3,20 @@
 <head>
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .delete-btn {
+            background-color: #ff4d4d; 
+            padding: 5px 10px; 
+            color: white; 
+            border-radius: 5px; 
+            text-decoration: none; 
+            cursor: pointer;
+            border: none;
+            font-size: 12px;
+        }
+        .delete-btn:hover { background-color: #cc0000; }
+        .fee-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+    </style>
 </head>
 <body>
     <div class="dashboard">
@@ -12,10 +26,15 @@
         </div>
 
         <div class="card">
-            <h3>➕ Add New Fee</h3>
-            <input type="text" id="new-fee-name" placeholder="Fee Name (e.g., Lab Fee)">
-            <input type="number" id="new-fee-amount" placeholder="Amount (INR)">
+            <h3>➕ Manage Fee Types</h3>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="new-fee-name" placeholder="Fee Name (e.g. Lab Fee)">
+                <input type="number" id="new-fee-amount" placeholder="Amount">
+            </div>
             <button onclick="addFee()">Add Fee</button>
+            
+            <div id="fee-list" style="margin-top: 20px; text-align: left;">
+                </div>
         </div>
 
         <div class="card">
@@ -28,6 +47,7 @@
                             <th>Fee Type</th>
                             <th>Amount</th>
                             <th>Receipt</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="tx-table"></tbody>
@@ -36,14 +56,34 @@
         </div>
 
         <div class="chat-container">
-            <h3>🤖 Admin AI Assistant</h3>
+            <h3>🤖 Admin Assistant</h3>
             <div id="chat-box"></div>
-            <input type="text" id="bot-input" placeholder="Define a word...">
+            <input type="text" id="bot-input" placeholder="Ask me something...">
             <button onclick="sendMsg()">Ask AI</button>
         </div>
     </div>
 
     <script>
+        // Load Everything on Start
+        loadFees();
+        loadPayments();
+
+        async function loadFees() {
+            const res = await fetch('/api/fees');
+            const data = await res.json();
+            const list = document.getElementById('fee-list');
+            list.innerHTML = '<h4>Current Active Fees:</h4>';
+            
+            data.forEach(fee => {
+                list.innerHTML += `
+                    <div class="fee-item">
+                        <span>${fee.FeeName} - ₹${fee.Amount}</span>
+                        <button class="delete-btn" onclick="deleteFee(${fee.FeeID})">Remove</button>
+                    </div>
+                `;
+            });
+        }
+
         async function loadPayments() {
             const res = await fetch('/api/admin/payments');
             const data = await res.json();
@@ -55,7 +95,8 @@
                         <td>${new Date(tx.PaymentDate).toLocaleDateString()}</td>
                         <td>${tx.FeeName}</td>
                         <td>₹${tx.Amount}</td>
-                        <td><a href="${tx.ReceiptURL}" target="_blank" style="color:#ff7f50; font-weight:bold;">View Receipt</a></td>
+                        <td><a href="${tx.ReceiptURL}" target="_blank" style="color:#0078D7; font-weight:bold;">View</a></td>
+                        <td><button class="delete-btn" onclick="deletePayment(${tx.PaymentID})">Delete</button></td>
                     </tr>
                 `;
             });
@@ -69,8 +110,20 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ feeName: name, amount })
             });
-            alert('Fee Added Successfully!');
-            location.reload();
+            alert('Fee Added!');
+            loadFees(); // Refresh list
+        }
+
+        async function deleteFee(id) {
+            if(!confirm("Delete this fee type?")) return;
+            await fetch(`/api/admin/delete-fee/${id}`, { method: 'DELETE' });
+            loadFees();
+        }
+
+        async function deletePayment(id) {
+            if(!confirm("Delete this transaction record?")) return;
+            await fetch(`/api/admin/delete-payment/${id}`, { method: 'DELETE' });
+            loadPayments();
         }
 
         async function sendMsg() {
@@ -86,8 +139,6 @@
         }
 
         function logout() { localStorage.clear(); window.location.href = 'portal.html'; }
-
-        loadPayments();
     </script>
 </body>
 </html>
