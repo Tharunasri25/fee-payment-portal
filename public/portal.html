@@ -51,11 +51,11 @@
     </div>
 
     <div id="form-signup" class="hidden">
-        <h3>Create Account</h3>
+        <h3 style="margin-top:0; color:#333;">Create Account</h3>
         <input type="text" id="new-name" placeholder="Full Name">
         <input type="email" id="new-email" placeholder="Email Address">
         <input type="password" id="new-pass" placeholder="Create Password">
-        <button class="btn" onclick="signup()">Sign Up</button>
+        <button class="btn" onclick="signup()">Create Account</button>
         <span class="link" onclick="setRole('student')">Back to Login</span>
     </div>
 
@@ -67,8 +67,9 @@
 </div>
 
 <script>
+    // 1. Switch between Student, Admin, and Signup Views
     function setRole(role) {
-        document.getElementById('form-signup').classList.add('hidden');
+        document.getElementById('form-signup').classList.add('hidden'); // Hide signup
         if(role === 'student') {
             document.getElementById('form-student').classList.remove('hidden');
             document.getElementById('form-admin').classList.add('hidden');
@@ -82,17 +83,19 @@
         }
     }
 
+    // 2. Show the Signup Form
     function showSignup() {
         document.getElementById('form-student').classList.add('hidden');
         document.getElementById('form-signup').classList.remove('hidden');
     }
 
+    // 3. Handle Signup Logic
     async function signup() {
         const name = document.getElementById('new-name').value;
         const email = document.getElementById('new-email').value;
         const password = document.getElementById('new-pass').value;
 
-        if(!name || !email || !password) return alert("Fill all fields");
+        if(!name || !email || !password) return alert("Please fill in all fields!");
 
         const res = await fetch('/signup', {
             method: 'POST',
@@ -100,23 +103,29 @@
             body: JSON.stringify({ name, email, password })
         });
         const data = await res.json();
+        
         if(data.success) {
             alert("Signup Successful! Please Login.");
+            // Switch back to login view
             setRole('student');
+            document.getElementById('stu-email').value = email; // Auto-fill email
         } else {
             alert(data.message || "Signup Failed");
         }
     }
 
+    // 4. Handle Login Logic
     async function login(role) {
         const email = role === 'student' ? document.getElementById('stu-email').value : document.getElementById('adm-email').value;
         const password = role === 'student' ? document.getElementById('stu-pass').value : document.getElementById('adm-pass').value;
+
+        if(!email || !password) return alert("Enter credentials");
 
         try {
             const res = await fetch('/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, role }) // Sending Role to Backend
+                body: JSON.stringify({ email, password, role })
             });
             const data = await res.json();
 
