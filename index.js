@@ -27,16 +27,16 @@ async function getDb() {
     return await sql.connect(dbConfig);
 }
 
-// --- 1. ROUTES ---
+// --- 1. ROOT ---
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'portal.html'));
 });
 
-// --- 2. DYNAMIC AUTHENTICATION (New!) ---
+// --- 2. AUTH ---
 app.post('/login', async (req, res) => {
-    const { email, password, role } = req.body; // Role sent from frontend
+    const { email, password, role } = req.body;
 
-    // A. ADMIN (Kept Hardcoded as requested)
+    // Admin (Hardcoded)
     if (role === 'admin') {
         if (email === 'admin@college.edu' && password === 'admin123') {
             return res.json({ success: true, role: 'admin', name: 'Principal Admin' });
@@ -45,7 +45,7 @@ app.post('/login', async (req, res) => {
         }
     }
 
-    // B. STUDENT (Now Dynamic via Azure SQL)
+    // Student (Database)
     if (role === 'student') {
         try {
             const pool = await getDb();
@@ -56,18 +56,17 @@ app.post('/login', async (req, res) => {
 
             if (result.recordset.length > 0) {
                 const user = result.recordset[0];
-                return res.json({ success: true, role: 'student', name: user.FullName });
+                // Sending back name and email so frontend can use it for receipts
+                return res.json({ success: true, role: 'student', name: user.FullName, email: user.Email });
             } else {
-                return res.status(401).json({ success: false, message: 'Student not found or wrong password' });
+                return res.status(401).json({ success: false, message: 'Student not found' });
             }
         } catch (err) {
-            console.error(err);
             return res.status(500).json({ success: false, message: 'Database Error' });
         }
     }
 });
 
-// --- NEW SIGNUP ROUTE ---
 app.post('/signup', async (req, res) => {
     const { name, email, password } = req.body;
     try {
@@ -77,10 +76,8 @@ app.post('/signup', async (req, res) => {
             .input('email', sql.NVarChar, email)
             .input('pass', sql.NVarChar, password)
             .query('INSERT INTO Students (FullName, Email, Password) VALUES (@name, @email, @pass)');
-        
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
         res.status(500).json({ success: false, message: 'Email might already exist' });
     }
 });
@@ -89,6 +86,7 @@ app.post('/signup', async (req, res) => {
 app.get('/api/admin/payments', async (req, res) => {
     try {
         const pool = await getDb();
+        // Select ALL columns including the new Name and Email
         const result = await pool.request().query('SELECT * FROM Payments ORDER BY PaymentDate DESC');
         res.json(result.recordset);
     } catch (err) {
@@ -135,25 +133,50 @@ app.get('/api/fees', async (req, res) => {
     } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
 
+// UPDATED: Now saves Student Name and Email
 app.post('/api/record-payment', async (req, res) => {
     try {
-        const { feeName, amount, paymentId } = req.body; 
-        const receiptContent = `RECEIPT\nID: ${paymentId}\nType: ${feeName}\nAmount: ${amount}\nStatus: PAID\nDate: ${new Date()}`;
+        const { feeName, amount, paymentId, studentName, studentEmail } = req.body; 
         
+        // 1. Generate Detailed Receipt
+        const receiptContent = `
+        OFFICIAL RECEIPT
+        ----------------
+        Date: ${new Date().toLocaleString()}
+        Transaction ID: ${paymentId}
+        Student Name: ${studentName}
+        Student Email: ${studentEmail}
+        
+        Fee Type: ${feeName}
+        Amount Paid: INR ${amount}
+        Status: SUCCESS
+        ----------------
+        `;
+        
+        // 2. Upload to Blob
         const containerClient = blobServiceClient.getContainerClient(containerName);
         const blobName = `receipt-${paymentId}.txt`;
         const blockBlobClient = containerClient.getBlockBlobClient(blobName);
         await blockBlobClient.uploadData(Buffer.from(receiptContent));
         
+        // 3. Save to Database (With Name and Email)
         const pool = await getDb();
         await pool.request()
             .input('fee', sql.NVarChar, feeName)
             .input('amount', sql.Decimal(10, 2), amount)
             .input('receipt', sql.NVarChar, blockBlobClient.url)
-            .query("INSERT INTO Payments (FeeName, Amount, ReceiptURL) VALUES (@fee, @amount, @receipt)");
+            .input('sName', sql.NVarChar, studentName)
+            .input('sEmail', sql.NVarChar, studentEmail)
+            .query(`
+                INSERT INTO Payments (FeeName, Amount, ReceiptURL, StudentName, StudentEmail) 
+                VALUES (@fee, @amount, @receipt, @sName, @sEmail)
+            `);
 
         res.json({ success: true, receiptUrl: blockBlobClient.url });
-    } catch (err) { res.status(500).json({ error: 'Failed' }); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ error: 'Failed' }); 
+    }
 });
 
 app.post('/create-order', async (req, res) => {
@@ -164,7 +187,6 @@ app.post('/create-order', async (req, res) => {
     } catch (error) { res.status(500).send("Error"); }
 });
 
-// --- 5. CHATBOT ---
 app.post('/chat', async (req, res) => {
     try {
         const word = req.body.message.trim();

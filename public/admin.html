@@ -5,121 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <style>
-        /* --- COOL PURPLE THEME & ALIGNMENT FIXES --- */
-        * { box-sizing: border-box; } /* This fixes the overflow issue */
-        
+        /* --- COOL PURPLE THEME --- */
+        * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            color: #333;
+            min-height: 100vh; margin: 0; padding: 20px; color: #333;
         }
-        
-        .dashboard-container { 
-            max-width: 800px; 
-            margin: 0 auto; 
-            width: 100%;
-        }
-        
-        /* Header */
-        .header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 20px; 
-        }
+        .dashboard-container { max-width: 1000px; margin: 0 auto; width: 100%; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         h2 { color: white; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        
-        /* Cards */
         .card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            margin-bottom: 25px;
-            text-align: left;
-            overflow: hidden; /* Prevents spillover */
+            background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 20px; text-align: left;
         }
         h3 { margin-top: 0; color: #4a4a4a; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-
-        /* Inputs Row */
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        input { 
-            padding: 12px; 
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            flex: 1; /* Makes inputs share space equally */
-            min-width: 150px;
-        }
-        
-        /* Buttons */
-        button.action-btn {
-            padding: 12px 20px;
-            background-color: #ff7f50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            width: 100%; /* Full width on mobile, auto on desktop */
-        }
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; flex: 1; }
+        button.action-btn { padding: 10px 20px; background-color: #ff7f50; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
         button.action-btn:hover { background-color: #ff6347; }
-        
-        .logout-btn { 
-            background-color: #e74c3c; 
-            padding: 8px 20px; 
-            color: white; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: bold;
-        }
-
-        /* Fee List Items */
-        .fee-item { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 15px; 
-            background: #f9f9f9; 
-            border-radius: 8px; 
-            margin-bottom: 10px; 
-            border: 1px solid #eee;
-        }
-        .delete-btn { 
-            background: #e74c3c; 
-            padding: 8px 12px; 
-            color: white; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-size: 12px; 
-        }
-
-        /* Table */
+        .logout-btn { background-color: #e74c3c; padding: 8px 20px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
         .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { background: #764ba2; color: white; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #eee; }
-        
-        /* Chat */
-        #chat-box { 
-            height: 150px; 
-            overflow-y: auto; 
-            background: #f8f9fa; 
-            padding: 15px; 
-            border-radius: 8px; 
-            border: 1px solid #ddd; 
-            margin-bottom: 15px; 
-        }
-        .chat-controls { display: flex; gap: 10px; }
+        .delete-btn { background: #e74c3c; padding: 5px 10px; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #chat-box { height: 150px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px; }
+        .fee-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #ccc; }
     </style>
 </head>
 <body>
@@ -133,19 +45,26 @@
         <div class="card">
             <h3>➕ Manage Fee Types</h3>
             <div class="input-group">
-                <input type="text" id="new-fee-name" placeholder="Fee Name (e.g. Lab Fee)">
+                <input type="text" id="new-fee-name" placeholder="Fee Name">
                 <input type="number" id="new-fee-amount" placeholder="Amount">
+                <button class="action-btn" onclick="addFee()">Add Fee</button>
             </div>
-            <button class="action-btn" onclick="addFee()">Add Fee</button>
-            
-            <div id="fee-list" style="margin-top: 20px;"></div>
+            <div id="fee-list"></div>
         </div>
 
         <div class="card">
             <h3>📜 Transaction History</h3>
             <div class="table-wrapper">
                 <table>
-                    <thead><tr><th>Date</th><th>Fee</th><th>Amount</th><th>Receipt</th><th>Action</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Student Name</th> <th>Email</th>        <th>Fee Type</th>
+                            <th>Amount</th>
+                            <th>Receipt</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
                     <tbody id="tx-table"></tbody>
                 </table>
             </div>
@@ -154,9 +73,9 @@
         <div class="card">
             <h3>🤖 Admin Assistant</h3>
             <div id="chat-box"></div>
-            <div class="chat-controls">
-                <input type="text" id="bot-input" placeholder="Ask AI..." style="flex-grow:1;">
-                <button class="action-btn" style="width: auto;" onclick="sendMsg()">Send</button>
+            <div class="input-group" style="margin-bottom:0;">
+                <input type="text" id="bot-input" placeholder="Ask AI...">
+                <button class="action-btn" onclick="sendMsg()">Send</button>
             </div>
         </div>
     </div>
@@ -168,12 +87,9 @@
             const res = await fetch('/api/fees');
             const data = await res.json();
             const list = document.getElementById('fee-list');
-            list.innerHTML = '<h4 style="margin-bottom:10px; color:#666;">Current Active Fees:</h4>';
+            list.innerHTML = '';
             data.forEach(fee => {
-                list.innerHTML += `<div class="fee-item">
-                    <strong>${fee.FeeName} - ₹${fee.Amount}</strong> 
-                    <button class="delete-btn" onclick="deleteFee(${fee.FeeID})">Remove</button>
-                </div>`;
+                list.innerHTML += `<div class="fee-item"><span>${fee.FeeName} - ₹${fee.Amount}</span> <button class="delete-btn" onclick="deleteFee(${fee.FeeID})">Remove</button></div>`;
             });
         }
 
@@ -185,7 +101,7 @@
             data.forEach(tx => {
                 tb.innerHTML += `<tr>
                     <td>${new Date(tx.PaymentDate).toLocaleDateString()}</td>
-                    <td>${tx.FeeName}</td>
+                    <td><b>${tx.StudentName || 'N/A'}</b></td> <td>${tx.StudentEmail || 'N/A'}</td>        <td>${tx.FeeName}</td>
                     <td>₹${tx.Amount}</td>
                     <td><a href="${tx.ReceiptURL}" target="_blank" style="color:#764ba2; font-weight:bold;">View</a></td>
                     <td><button class="delete-btn" onclick="deletePayment(${tx.PaymentID})">Delete</button></td>
